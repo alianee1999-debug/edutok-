@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 const ADMIN_PHONE = "07700000000";
 const ADMIN_PASS_DEFAULT = "admin2024";
 const adminCreds = { phone: ADMIN_PHONE, password: ADMIN_PASS_DEFAULT };
-
+const GEMINI_API_KEY = "AQ.Ab8RN6Krr0o35IydNnhagoU3nDTx20szBvwmERf2nn_Xpo-IOw";
 const GRADES = {
   الابتدائية: ["الأول","الثاني","الثالث","الرابع","الخامس","السادس"],
   المتوسطة: ["الأول","الثاني","الثالث"],
