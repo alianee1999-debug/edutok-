@@ -272,6 +272,10 @@ function App({student, onLogout}) {
   const onVideoTap = (v) => {
     if (!isUnlocked(v)) { setModal({type:"pay",data:v}); return; }
     if (v.slides?.length > 0) { setSlideVideo(v); return; }
+    if (!v.videoUrl) {
+      showNotif("لا يوجد فيديو لهذا المقطع بعد", "error");
+      return;
+    }
   };
 
   const payFromWallet = (v) => {
