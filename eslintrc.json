@@ -1,8 +1,0 @@
-{
-  "extends": "react-app",
-  "rules": {
-    "no-alert": "off",
-    "no-restricted-globals": "off",
-    "no-unused-vars": "warn"
-  }
-}
