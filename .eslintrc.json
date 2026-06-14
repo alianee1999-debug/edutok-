@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "react-app"
+  ],
+  "rules": {
+    "no-unused-vars": "off",
+    "no-undef": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "no-restricted-globals": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021
+  }
+}
