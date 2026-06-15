@@ -1,9 +1,0 @@
-{
-  "buildCommand": "DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
-  "framework": "create-react-app",
-  "env": {
-    "DISABLE_ESLINT_PLUGIN": "true",
-    "CI": "false",
-    "SKIP_PREFLIGHT_CHECK": "true"
-  }
-}
