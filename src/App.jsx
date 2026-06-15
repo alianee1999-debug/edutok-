@@ -1458,3 +1458,29 @@ export default function App() {
             )}
             {adminTab==="clips"&&showClipForm&&(
        <div>
+<div style={{...C.infoBanner,marginBottom:"12px"}}><Film size={16}/><span style={{fontWeight:"bold"}}>{editingClip?"تعديل المقطع":"بيانات المقطع الجديد"}</span></div>
+                <button style={{width:"100%",padding:"11px",backgroundColor:"#27272a",color:"#ef4444",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"12px",fontSize:"13px",fontWeight:"bold",cursor:"pointer",marginBottom:"14px",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"}} onClick={resetClipForm}><X size={14}/> إغلاق</button>
+                <div style={C.twoCol}>
+                  <div><label style={C.label}>المرحلة</label><select style={C.select} value={clipStage} onChange={e=>{setClipStage(e.target.value);setClipGrade((GRADES[e.target.value]||[])[0]||"");}}>{STAGES.map(s=><option key={s}>{s}</option>)}</select></div>
+                  <div><label style={C.label}>الصف</label><select style={C.select} value={clipGrade} onChange={e=>setClipGrade(e.target.value)}>{(GRADES[clipStage]||[]).map(g=><option key={g}>{g}</option>)}</select></div>
+                </div>
+                <div style={C.twoCol}>
+                  <div><label style={C.label}>المادة</label><select style={C.select} value={clipSubject} onChange={e=>setClipSubject(e.target.value)}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
+                  <div><label style={C.label}>الفصل</label><select style={C.select} value={clipSemester} onChange={e=>setClipSemester(e.target.value)}>{SEMESTERS.map(s=><option key={s}>{s}</option>)}</select></div>
+                </div>
+                <div style={C.twoCol}>
+                  <div><label style={C.label}>نوع المقطع</label><select style={C.select} value={clipType} onChange={e=>setClipType(e.target.value)}>{CLIP_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+                  <div><label style={C.label}>رقم المقطع</label><input type="text" value={clipNum} onChange={e=>setClipNum(e.target.value)} style={C.input} placeholder="01"/></div>
+                </div>
+                <label style={C.label}>العنوان</label><input type="text" value={clipTitle} onChange={e=>setClipTitle(e.target.value)} placeholder="عنوان المقطع" style={C.input}/>
+                <div style={C.twoCol}>
+                  <div><label style={C.label}>المعلم</label><input type="text" value={clipTeacher} onChange={e=>setClipTeacher(e.target.value)} placeholder="أ. محمد" style={C.input}/></div>
+                  <div><label style={C.label}>الموبايل</label><input type="text" placeholder="07XX..." style={C.input}/></div>
+                </div>
+                <label style={C.label}> صورة مصغرة</label>
+                <ImageUploader onUpload={url=>setClipThumbUrl(url)} onBase64={()=>{}} color="#a855f7" label="اختر صورة مصغرة للمقطع"/>
+                <label style={C.label}> رابط الفيديو</label>
+                <div style={{...C.infoBanner,marginBottom:"10px",fontSize:"12px"}}>✅ يدعم روابط يوتيوب ورفع الفيديو المباشر</div>
+                <input type="text" placeholder="https://youtube.com/watch?v=... أو رابط مباشر" value={clipVideoUrl} onChange={e=>setClipVideoUrl(e.target.value)} style={C.input}/>
+                <div style={C.saveRow}>
+                  <b
