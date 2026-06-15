@@ -1,0 +1,1175 @@
+/* eslint-disable */
+import React, { useState, useEffect, useRef } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, deleteDoc, updateDoc, doc } from "firebase/firestore";
+import { Bookmark, Share2, Bot, MessageCircle, MoreHorizontal, FileText, Camera, Search, ChevronUp, ChevronDown, Settings, User, Home, Bell, DollarSign, Users, Layers, Film, Sparkles, X, Save, BookOpen, GraduationCap, Plus, Play, Loader } from "lucide-react";
+
+const FIREBASE_CONFIG = {
+  apiKey:"AIzaSyA1mskTWMsVV9dpO3I7hVxZx9LUtbzNjuo",
+  authDomain:"edutok-a48f9.firebaseapp.com",
+  projectId:"edutok-a48f9",
+  storageBucket:"edutok-a48f9.firebasestorage.app",
+  messagingSenderId:"742519479032",
+  appId:"1:742519479032:web:0d0606bcaf75c95a51f90d"
+};
+const firebaseApp = initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(firebaseApp);
+const GROQ_KEY = "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";
+const IMGBB_KEY = "92c2c743edc0ac25a6e50a247f811b95";
+const ADMIN_PHONE = "07700000000";
+const ADMIN_PASS = "admin123";
+const ZAINCASH_NUM = "07700000000";
+const LOGO = "https://cdn-icons-png.flaticon.com/512/8841/8841503.png";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+const SUBJECTS = [
+  "\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a","\u0627\u0644\u0639\u0644\u0648\u0645",
+  "\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629","\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629",
+  "\u0627\u0644\u0641\u064a\u0632\u064a\u0627\u0621","\u0627\u0644\u0643\u064a\u0645\u064a\u0627\u0621",
+  "\u0627\u0644\u0623\u062d\u064a\u0627\u0621","\u0627\u0644\u062a\u0631\u0628\u064a\u0629 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\u0629","\u0627\u0644\u062a\u0627\u0631\u064a\u062e"
+];
+const STAGES = ["\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629","\u0627\u0644\u0645\u062a\u0648\u0633\u0637\u0629","\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u064a\u0629"];
+const GRADES = {
+  "\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629":["\u0627\u0644\u0623\u0648\u0644","\u0627\u0644\u062b\u0627\u0646\u064a","\u0627\u0644\u062b\u0627\u0644\u062b","\u0627\u0644\u0631\u0627\u0628\u0639","\u0627\u0644\u062e\u0627\u0645\u0633","\u0627\u0644\u0633\u0627\u062f\u0633"],
+  "\u0627\u0644\u0645\u062a\u0648\u0633\u0637\u0629":["\u0627\u0644\u0623\u0648\u0644","\u0627\u0644\u062b\u0627\u0646\u064a","\u0627\u0644\u062b\u0627\u0644\u062b"],
+  "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u064a\u0629":["\u0627\u0644\u0623\u0648\u0644","\u0627\u0644\u062b\u0627\u0646\u064a","\u0627\u0644\u062b\u0627\u0644\u062b"]
+};
+const SEMESTERS = ["\u0627\u0644\u0623\u0648\u0644","\u0627\u0644\u062b\u0627\u0646\u064a","\u0627\u0644\u062b\u0627\u0644\u062b"];
+const CLIP_TYPES = ["\u0645\u0639\u0644\u0645","\u0637\u0627\u0644\u0628","\u0645\u0631\u0627\u062c\u0639\u0629","\u0627\u062e\u062a\u0628\u0627\u0631"];
+const PRICE_SUBJECTS = [
+  "\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a","\u0627\u0644\u0639\u0644\u0648\u0645",
+  "\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629","\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629",
+  "\u0627\u0644\u0641\u064a\u0632\u064a\u0627\u0621","\u0627\u0644\u0643\u064a\u0645\u064a\u0627\u0621",
+  "\u0627\u0644\u0623\u062d\u064a\u0627\u0621","\u0627\u0644\u062a\u0631\u0628\u064a\u0629 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\u0629","\u0645\u0644\u0627\u0632\u0645 PDF"
+];
+const THEMES = [
+  {label:"\u0628\u0631\u062a\u0642\u0627\u0644\u064a",color:"#b45309"},
+  {label:"\u0623\u062e\u0636\u0631",color:"#166534"},
+  {label:"\u0628\u0646\u0641\u0633\u062c\u064a",color:"#5b21b6"},
+  {label:"\u0623\u0632\u0631\u0642 \u0645\u062a\u062f\u0631\u062c",color:"#0c4a6e"},
+  {label:"\u062f\u0627\u0643\u0646",color:"#27272a"}
+];
+const THEME_STYLES = {
+  "\u0628\u0631\u062a\u0642\u0627\u0644\u064a":{bg:"linear-gradient(135deg,#7c2d12,#c2410c)",accent:"#fb923c",card:"rgba(194,65,12,0.25)"},
+  "\u0623\u062e\u0636\u0631":{bg:"linear-gradient(135deg,#14532d,#15803d)",accent:"#4ade80",card:"rgba(21,128,61,0.25)"},
+  "\u0628\u0646\u0641\u0633\u062c\u064a":{bg:"linear-gradient(135deg,#4c1d95,#6d28d9)",accent:"#c4b5fd",card:"rgba(109,40,217,0.25)"},
+  "\u0623\u0632\u0631\u0642 \u0645\u062a\u062f\u0631\u062c":{bg:"linear-gradient(135deg,#0c4a6e,#0369a1)",accent:"#38bdf8",card:"rgba(3,105,161,0.25)"},
+  "\u062f\u0627\u0643\u0646":{bg:"linear-gradient(135deg,#09090b,#18181b)",accent:"#a1a1aa",card:"rgba(255,255,255,0.06)"}
+};
+const DURATIONS = [
+  {label:"\u0634\u0647\u0631\u064a 30 \u064a\u0648\u0645",days:30},
+  {label:"\u0641\u0635\u0644\u064a 90 \u064a\u0648\u0645",days:90},
+  {label:"\u0633\u0646\u0648\u064a 365 \u064a\u0648\u0645",days:365}
+];
+const ADMIN_TABS = [
+  {key:"clips",label:"\u0627\u0644\u0645\u0642\u0627\u0637\u0639",Icon:Film},
+  {key:"slides",label:"\u0634\u0631\u0627\u0626\u062d",Icon:Layers},
+  {key:"pdf",label:"PDF",Icon:FileText},
+  {key:"wallet",label:"\u0627\u0644\u0645\u062d\u0641\u0638\u0629",Icon:DollarSign},
+  {key:"students",label:"\u0627\u0644\u0637\u0644\u0627\u0628",Icon:Users},
+  {key:"prices",label:"\u0627\u0644\u0623\u0633\u0639\u0627\u0631",Icon:Bell},
+  {key:"notifications",label:"\u0625\u0634\u0639\u0627\u0631\u0627\u062a",Icon:Bell},
+  {key:"settings",label:"\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a",Icon:Settings}
+];
+const SAMPLE_VIDEOS = [
+  {id:"s1",title:"\u0645\u0642\u062f\u0645\u0629 \u0641\u064a \u0627\u0644\u062c\u0628\u0631",teacher:"\u0623. \u0623\u062d\u0645\u062f",subject:"\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a",stage:"\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629",duration:"2:30",bg:"linear-gradient(180deg,#0f172a,#1e1b4b)",videoUrl:""},
+  {id:"s2",title:"\u0642\u0648\u0627\u0646\u064a\u0646 \u0646\u064a\u0648\u062a\u0646",teacher:"\u0623. \u0633\u0627\u0631\u0629",subject:"\u0627\u0644\u0641\u064a\u0632\u064a\u0627\u0621",stage:"\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u064a\u0629",duration:"3:15",bg:"linear-gradient(180deg,#042f2e,#0d3b2e)",videoUrl:""},
+  {id:"s3",title:"\u0627\u0644\u062c\u0647\u0627\u0632 \u0627\u0644\u062a\u0646\u0641\u0633\u064a",teacher:"\u0623. \u062e\u0627\u0644\u062f",subject:"\u0627\u0644\u0623\u062d\u064a\u0627\u0621",stage:"\u0627\u0644\u0645\u062a\u0648\u0633\u0637\u0629",duration:"4:00",bg:"linear-gradient(180deg,#1a1a2e,#16213e)",videoUrl:""}
+];
+
+const subKey = (subject,stage) => subject+"__"+stage;
+const isSubscribed = (subs,subject,stage) => {
+  if(!subs||!subject||!stage) return false;
+  const s=subs[subKey(subject,stage)];
+  return s && new Date(s.expiresAt)>new Date();
+};
+const daysLeft = (subs,subject,stage) => {
+  if(!subs||!subject||!stage) return 0;
+  const s=subs[subKey(subject,stage)];
+  if(!s) return 0;
+  return Math.max(0,Math.ceil((new Date(s.expiresAt)-new Date())/86400000));
+};
+const saveSession = (student,role) => {try{localStorage.setItem("edutok_session",JSON.stringify({student,role}));}catch(e){}};
+const loadSession = () => {try{return JSON.parse(localStorage.getItem("edutok_session")||"null");}catch(e){return null;}};
+const clearSession = () => {try{localStorage.removeItem("edutok_session");}catch(e){}};
+const getYoutubeId = (url) => {
+  if(!url) return null;
+  const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
+  return m?m[1]:null;
+};
+const callGroq = async (prompt,imageBase64,imageMime) => {
+  const mime=imageMime||"image/jpeg";
+  if(!imageBase64){
+    const res=await fetch(GROQ_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"user",content:prompt}],temperature:0.7,max_tokens:2000})});
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message||"Groq error");
+    return d.choices?.[0]?.message?.content||"";
+  }
+  const res=await fetch(GROQ_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},body:JSON.stringify({model:"meta-llama/llama-4-scout-17b-16e-instruct",messages:[{role:"user",content:[{type:"image_url",image_url:{url:"data:"+mime+";base64,"+imageBase64}},{type:"text",text:prompt}]}],temperature:0.7,max_tokens:2000})});
+  const d=await res.json();
+  if(d.error) throw new Error(d.error.message||"Groq vision error");
+  return d.choices?.[0]?.message?.content||"";
+};
+const callGemini = callGroq;
+const uploadToImgBB = async (file) => {
+  const form=new FormData();
+  form.append("image",file);
+  form.append("key",IMGBB_KEY);
+  const res=await fetch("https://api.imgbb.com/1/upload",{method:"POST",body:form});
+  const d=await res.json();
+  if(d.success) return {url:d.data.url,base64:d.data.image?.base64||null};
+  throw new Error("\u0641\u0634\u0644 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631\u0629");
+};
+
+const C = {
+  app:{width:"100%",maxWidth:"420px",minHeight:"100vh",backgroundColor:"#09090b",color:"#fff",fontFamily:"system-ui,-apple-system,sans-serif",direction:"rtl",margin:"0 auto",paddingBottom:"72px",boxSizing:"border-box",overflowX:"hidden",position:"relative"},
+  header:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)"},
+  logoRow:{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer"},
+  section:{padding:"16px"},
+  twoCol:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},
+  tabsGrid:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"6px",padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.06)"},
+  tab:(a)=>({padding:"8px 4px",borderRadius:"10px",border:"none",fontSize:"10px",fontWeight:"bold",cursor:"pointer",backgroundColor:a?"#f97316":"#27272a",color:"#fff",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:"3px"}),
+  label:{display:"block",fontSize:"13px",color:"#a1a1aa",marginBottom:"6px"},
+  input:{width:"100%",padding:"12px 14px",backgroundColor:"#18181b",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"12px",color:"#fff",fontSize:"14px",marginBottom:"14px",boxSizing:"border-box",outline:"none"},
+  select:{width:"100%",padding:"12px 14px",backgroundColor:"#18181b",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"12px",color:"#fff",fontSize:"14px",marginBottom:"14px",boxSizing:"border-box",outline:"none",appearance:"none"},
+  gradBtn:{width:"100%",padding:"15px",borderRadius:"14px",border:"none",background:"linear-gradient(to right,#f97316,#ef4444)",color:"#fff",fontSize:"15px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",gap:"6px",marginBottom:"10px"},
+  blueBtn:{width:"100%",padding:"14px",backgroundColor:"#0ea5e9",color:"#fff",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"bold",cursor:"pointer",marginBottom:"14px"},
+  redBtn:{width:"100%",padding:"14px",backgroundColor:"#ef4444",color:"#fff",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"bold",cursor:"pointer",marginBottom:"14px"},
+  purpleBtn:{width:"100%",padding:"15px",borderRadius:"14px",border:"none",background:"linear-gradient(to right,#7c3aed,#a855f7)",color:"#fff",fontSize:"15px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",gap:"6px"},
+  primaryBtn:{width:"100%",padding:"15px",borderRadius:"14px",border:"none",background:"linear-gradient(to right,#0ea5e9,#a855f7)",color:"#fff",fontSize:"15px",fontWeight:"bold",cursor:"pointer",marginBottom:"12px"},
+  secondaryBtn:{width:"100%",padding:"15px",borderRadius:"14px",border:"1px solid rgba(255,255,255,0.12)",backgroundColor:"#18181b",color:"#fff",fontSize:"15px",fontWeight:"bold",cursor:"pointer"},
+  saveRow:{display:"flex",gap:"10px",marginTop:"8px"},
+  cancelBtn:{flex:1,padding:"14px",backgroundColor:"#27272a",color:"#a1a1aa",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"bold",cursor:"pointer"},
+  saveBtn:{flex:1,padding:"14px",background:"linear-gradient(to right,#0ea5e9,#a855f7)",color:"#fff",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"bold",cursor:"pointer"},
+  adminBtn:{background:"linear-gradient(135deg,#f97316,#ef4444)",color:"#fff",border:"none",padding:"6px 14px",borderRadius:"20px",fontSize:"12px",fontWeight:"bold",cursor:"pointer",display:"flex",alignItems:"center",gap:"4px"},
+  infoBanner:{backgroundColor:"rgba(8,47,73,0.4)",border:"1px solid #0369a1",borderRadius:"12px",padding:"12px",fontSize:"13px",color:"#38bdf8",marginBottom:"16px",display:"flex",alignItems:"center",gap:"6px"},
+  card:{backgroundColor:"#18181b",borderRadius:"14px",padding:"14px 16px",marginBottom:"10px",border:"1px solid rgba(255,255,255,0.04)"},
+  bottomNav:{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:"420px",height:"64px",backgroundColor:"#09090b",borderTop:"1px solid rgba(255,255,255,0.07)",display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:100,boxSizing:"border-box"},
+  navItem:(a)=>({display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",background:"none",border:"none",color:a?"#38bdf8":"#71717a",gap:"2px",padding:"4px"}),
+  welcomeWrap:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",minHeight:"88vh"},
+  welcomeTitle:{fontSize:"36px",fontWeight:"900",background:"linear-gradient(to right,#38bdf8,#a855f7)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",margin:"12px 0 4px"},
+  priceRow:{display:"flex",alignItems:"center",justifyContent:"space-between",backgroundColor:"#18181b",padding:"10px 16px",borderRadius:"12px",marginBottom:"8px",border:"1px solid rgba(255,255,255,0.04)"},
+  priceInput:{width:"100%",background:"none",border:"none",color:"#fff",textAlign:"right",fontSize:"14px",outline:"none"},
+  statsGrid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginTop:"10px"},
+  statCard:{backgroundColor:"#18181b",padding:"16px 12px",borderRadius:"14px",textAlign:"center",border:"1px solid rgba(255,255,255,0.03)"},
+  overlay:{position:"fixed",top:0,left:0,right:0,bottom:0,backgroundColor:"rgba(0,0,0,0.75)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:200,padding:"16px"},
+  modalBox:{backgroundColor:"#18181b",borderRadius:"24px",padding:"24px",width:"100%",maxWidth:"380px",maxHeight:"88vh",overflowY:"auto"},
+  videoWrap:{position:"relative",width:"calc(100% - 32px)",height:"500px",margin:"16px auto",borderRadius:"24px",border:"1px solid rgba(255,255,255,0.08)",display:"flex",justifyContent:"center",alignItems:"center",overflow:"hidden"},
+  sidebar:{position:"absolute",left:"16px",top:"8%",display:"flex",flexDirection:"column",gap:"14px",zIndex:15},
+  sideBtn:(a)=>({width:"50px",height:"50px",borderRadius:"50%",backgroundColor:a?"rgba(34,211,238,0.2)":"rgba(15,23,42,0.75)",border:a?"1px solid #22d3ee":"1px solid rgba(255,255,255,0.1)",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",cursor:"pointer",color:"#fff",gap:"1px"}),
+  sideTxt:(a)=>({fontSize:"10px",color:a?"#22d3ee":"#cbd5e1"}),
+  moreMenu:{position:"absolute",bottom:"20px",left:"16px",right:"16px",backgroundColor:"rgba(24,24,27,0.97)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"20px",padding:"14px 12px",display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:30,backdropFilter:"blur(12px)"},
+  moreItem:{display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",background:"none",border:"none",color:"#fff",padding:"4px 8px"}
+};
+
+const Spinner = ({color,size}) => {
+  const c=color||"#38bdf8"; const s=size||24;
+  return (
+    <div style={{display:"inline-block",animation:"spin 1s linear infinite"}}>
+      <Loader size={s} color={c}/>
+      <style dangerouslySetInnerHTML={{__html:"@keyframes spin{to{transform:rotate(360deg)}}"}}/>
+    </div>
+  );
+};
+const MHead = ({icon,title,color,onClose}) => (
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+    <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+      {icon}
+      <span style={{fontWeight:"bold",fontSize:"16px",color:color||"#fff"}}>{title}</span>
+    </div>
+    <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"#71717a"}}><X size={20}/></button>
+  </div>
+);
+const ErrBox = ({msg}) => msg
+  ? <div style={{backgroundColor:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"10px",padding:"10px",fontSize:"13px",color:"#f87171",marginBottom:"14px",textAlign:"center"}}>! {msg}</div>
+  : null;
+
+let _setToast = null;
+const showMsg = (msg) => { if(_setToast) _setToast(msg); };
+const Toast = () => {
+  const [msg,setMsg]=useState("");
+  _setToast=(m)=>{setMsg(m);setTimeout(()=>setMsg(""),3000);};
+  if(!msg) return null;
+  return (
+    <div style={{position:"fixed",top:"20px",left:"50%",transform:"translateX(-50%)",backgroundColor:"#18181b",border:"1px solid rgba(255,255,255,0.15)",borderRadius:"12px",padding:"12px 20px",fontSize:"13px",color:"#fff",zIndex:9999,boxShadow:"0 8px 24px rgba(0,0,0,0.5)",maxWidth:"320px",textAlign:"center",direction:"rtl"}}>
+      {msg}
+    </div>
+  );
+};
+
+const ImageUploader = ({onUpload,onBase64,color,label}) => {
+  const c=color||"#34d399"; const l=label||"\u0627\u0636\u063a\u0637 \u0644\u0631\u0641\u0639 \u0635\u0648\u0631\u0629";
+  const [uploading,setUploading]=useState(false);
+  const [preview,setPreview]=useState(null);
+  const handleFile=async(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    setUploading(true);
+    try{
+      const r=await uploadToImgBB(file);
+      setPreview(r.url);
+      if(onUpload) onUpload(r.url);
+      if(onBase64) onBase64(r.base64);
+    }catch(err){showMsg("\u0641\u0634\u0644 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631\u0629");}
+    setUploading(false);
+  };
+  return (
+    <div style={{marginBottom:"12px"}}>
+      {preview&&<img src={preview} alt="" style={{width:"100%",maxHeight:"200px",objectFit:"contain",borderRadius:"12px",marginBottom:"8px",border:"1px solid rgba(255,255,255,0.1)"}}/>}
+      {uploading
+        ? <div style={{textAlign:"center",padding:"16px",color:c}}><Spinner color={c}/><div style={{marginTop:"8px",fontSize:"12px"}}>\u062c\u0627\u0631\u064d \u0627\u0644\u0631\u0641\u0639...</div></div>
+        : <label style={{display:"block",width:"100%",padding:"16px",backgroundColor:"rgba(52,211,153,0.08)",border:"2px dashed rgba(52,211,153,0.35)",borderRadius:"14px",textAlign:"center",cursor:"pointer",boxSizing:"border-box"}}>
+            <Camera size={28} color={c} style={{margin:"0 auto 6px"}}/>
+            <div style={{fontSize:"13px",color:c,fontWeight:"bold"}}>{preview?"\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0635\u0648\u0631\u0629":l}</div>
+            <div style={{fontSize:"11px",color:"#71717a",marginTop:"3px"}}>\u0645\u0646 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0648 \u0645\u0639\u0631\u0636 \u0627\u0644\u0635\u0648\u0631</div>
+            <input type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/>
+          </label>
+      }
+    </div>
+  );
+};
+
+const VideoPlayer = ({video,playing,onClick}) => {
+  const [slideIdx,setSlideIdx]=useState(0);
+  const slideTimer=useRef(null);
+  useEffect(()=>{
+    if(video.type==="\u0634\u0631\u0627\u0626\u062d AI"&&video.slides&&video.slides.length&&playing){
+      slideTimer.current=setInterval(()=>{setSlideIdx(i=>i<video.slides.length-1?i+1:0);},4000);
+    }
+    return ()=>clearInterval(slideTimer.current);
+  },[playing,video]);
+
+  if(video.type==="\u0634\u0631\u0627\u0626\u062d AI"&&video.slides&&video.slides.length){
+    const ts=THEME_STYLES[video.theme]||THEME_STYLES["\u0623\u0632\u0631\u0642 \u0645\u062a\u062f\u0631\u062c"];
+    const sl=video.slides[slideIdx]||{};
+    return (
+      <div style={{position:"absolute",inset:0,zIndex:2,background:ts.bg,display:"flex",flexDirection:"column",justifyContent:"center",padding:"20px 16px",overflowY:"auto"}} onClick={onClick}>
+        <div style={{position:"absolute",top:"12px",left:"16px",backgroundColor:ts.card,borderRadius:"8px",padding:"3px 10px",border:"1px solid "+ts.accent+"44"}}>
+          <span style={{color:ts.accent,fontSize:"11px",fontWeight:"bold"}}>{slideIdx+1} / {video.slides.length}</span>
+        </div>
+        <div style={{position:"absolute",top:"12px",right:"16px",backgroundColor:"rgba(0,0,0,0.3)",borderRadius:"8px",padding:"3px 10px"}}>
+          <span style={{color:"rgba(255,255,255,0.7)",fontSize:"10px"}}>{video.subject}</span>
+        </div>
+        <div style={{marginTop:"32px"}}>
+          <h3 style={{color:"#fff",fontSize:"18px",fontWeight:"bold",marginBottom:"16px",lineHeight:"1.5",textAlign:"center"}}>{sl.title}</h3>
+          <ul style={{listStyle:"none",padding:0,margin:0}}>
+            {(sl.points||[]).map((pt,i)=>(
+              <li key={i} style={{display:"flex",alignItems:"flex-start",gap:"8px",marginBottom:"10px",color:"rgba(255,255,255,0.9)",fontSize:"13px",lineHeight:"1.6"}}>
+                <span style={{color:ts.accent,flexShrink:0,fontSize:"16px"}}>◆</span>{pt}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div style={{display:"flex",gap:"5px",justifyContent:"center",marginTop:"16px",flexWrap:"wrap"}}>
+          {video.slides.map((_,i)=>(
+            <div key={i} onClick={e=>{e.stopPropagation();setSlideIdx(i);}} style={{width:i===slideIdx?"18px":"7px",height:"7px",borderRadius:"4px",backgroundColor:i===slideIdx?ts.accent:"rgba(255,255,255,0.3)",cursor:"pointer",transition:"width 0.2s"}}/>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:"10px",marginTop:"14px"}}>
+          <button disabled={slideIdx===0} onClick={e=>{e.stopPropagation();setSlideIdx(i=>i-1);}} style={{flex:1,padding:"10px",borderRadius:"12px",border:"none",backgroundColor:slideIdx===0?"rgba(255,255,255,0.05)":"rgba(255,255,255,0.15)",color:slideIdx===0?"rgba(255,255,255,0.3)":"#fff",cursor:slideIdx===0?"not-allowed":"pointer",fontWeight:"bold",fontSize:"13px"}}>\u0627\u0644\u0633\u0627\u0628\u0642</button>
+          <button
+            disabled={slideIdx===video.slides.length-1}
+            onClick={e=>{e.stopPropagation();setSlideIdx(i=>i+1);}}
+            style={{flex:1,padding:"10px",borderRadius:"12px",border:"none",backgroundColor:slideIdx===video.slides.length-1?"rgba(255,255,255,0.05)":"rgba(255,255,255,0.15)",color:slideIdx===video.slides.length-1?"rgba(255,255,255,0.3)":"#fff",cursor:slideIdx===video.slides.length-1?"not-allowed":"pointer",fontWeight:"bold",fontSize:"13px"}}
+          >\u0627\u0644\u062a\u0627\u0644\u064a</button>
+        </div>
+        {playing&&<div style={{position:"absolute",bottom:"12px",right:"12px",fontSize:"10px",color:ts.accent}}>\u062a\u0634\u063a\u064a\u0644 \u062a\u0644\u0642\u0627\u0626\u064a</div>}
+      </div>
+    );
+  }
+  const ytId=getYoutubeId(video.videoUrl);
+  if(ytId) return (
+    <div style={{position:"absolute",inset:0,zIndex:2}}>
+      <iframe src={"https://www.youtube.com/embed/"+ytId+"?autoplay="+(playing?1:0)+"&mute=0&controls=1&rel=0"} style={{width:"100%",height:"100%",border:"none"}} allow="autoplay; fullscreen" allowFullScreen/>
+    </div>
+  );
+  if(video.videoUrl) return <video src={video.videoUrl} autoPlay={playing} loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:2}}/>;
+  return (
+    <>
+      {video.thumbUrl&&<img src={video.thumbUrl} alt={video.title} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:1,opacity:0.6}}/>}
+      {!playing&&(
+        <div style={{position:"absolute",zIndex:5,display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",pointerEvents:"none"}}>
+          <div style={{width:70,height:70,borderRadius:"50%",backgroundColor:"rgba(0,0,0,0.6)",display:"flex",justifyContent:"center",alignItems:"center"}}><Play size={30} color="#fff" fill="#fff"/></div>
+          <span style={{color:"rgba(255,255,255,0.8)",fontSize:"12px"}}>\u0627\u0636\u063a\u0637 \u0644\u0644\u062a\u0634\u063a\u064a\u0644</span>
+        </div>
+      )}
+      {playing&&(
+        <div style={{position:"absolute",bottom:"16px",right:"16px",display:"flex",alignItems:"flex-end",gap:"3px",zIndex:6,pointerEvents:"none"}}>
+          {[1,2,3,4].map(i=><div key={i} style={{width:"3px",borderRadius:"2px",backgroundColor:"#38bdf8",animation:"eq"+i+" 0.8s ease-in-out infinite alternate",height:(8+i*4)+"px",animationDelay:(i*0.15)+"s"}}/>)}
+          <style dangerouslySetInnerHTML={{__html:"@keyframes eq1{to{height:16px}}@keyframes eq2{to{height:8px}}@keyframes eq3{to{height:20px}}@keyframes eq4{to{height:10px}}"}}/>
+        </div>
+      )}
+    </>
+  );
+};
+
+function AIModal({onClose,video}) {
+  const [q,setQ]=useState(""); const [ans,setAns]=useState(""); const [loading,setLoading]=useState(false);
+  const ask=async()=>{
+    if(!q.trim()) return; setLoading(true); setAns("");
+    try{
+      const aiPrompt="\u0623\u0646\u062a \u0645\u0633\u0627\u0639\u062f \u062a\u0639\u0644\u064a\u0645\u064a. \u0627\u0644\u0637\u0627\u0644\u0628 \u064a\u0634\u0627\u0647\u062f \u062f\u0631\u0633: "
+      +video.title+" \u0641\u064a \u0645\u0627\u062f\u0629 "+video.subject+". \u0633\u0624\u0627\u0644\u0647: "+q+". \u0623\u062c\u0628 \u0628\u0625\u064a\u062c\u0627\u0632 \u0648\u0628\u0627\u0644\u0639\u0631\u0628\u064a\u0629.";
+      const r=await callGemini(aiPrompt);
+      setAns(r||"\u0644\u0645 \u0623\u062a\u0645\u0643\u0646 \u0645\u0646 \u0627\u0644\u0625\u062c\u0627\u0628\u0629.");
+    }catch(e){setAns("\u062d\u062f\u062b \u062e\u0637\u0623: "+e.message);}
+    setLoading(false);
+  };
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(56,189,248,0.2)"}}>
+      <MHead icon={<Bot size={20} color="#38bdf8"/>} title="\u0627\u0644\u0645\u0633\u0627\u0639\u062f \u0627\u0644\u0630\u0643\u064a" color="#38bdf8" onClose={onClose}/>
+      <div style={{...C.infoBanner,marginBottom:"12px"}}>\u0627\u0633\u0623\u0644\u0646\u064a \u0639\u0646: <strong>{video.title}</strong></div>
+      {ans&&<div style={{backgroundColor:"#09090b",borderRadius:"12px",padding:"14px",fontSize:"14px",color:"#e4e4e7",lineHeight:"1.7",marginBottom:"14px",border:"1px solid rgba(56,189,248,0.15)",whiteSpace:"pre-wrap"}}><div style={{color:"#38bdf8",fontSize:"11px",fontWeight:"bold",marginBottom:"6px"}}>\u0627\u0644\u0625\u062c\u0627\u0628\u0629:</div>{ans}</div>}
+      {loading&&<div style={{textAlign:"center",padding:"12px"}}><Spinner/><div style={{marginTop:"8px",fontSize:"13px",color:"#38bdf8"}}>\u062c\u0627\u0631\u064d \u0627\u0644\u0628\u062d\u062b...</div></div>}
+      <textarea rows={3} value={q} onChange={e=>setQ(e.target.value)} placeholder="\u0627\u0643\u062a\u0628 \u0633\u0624\u0627\u0644\u0643 \u0647\u0646\u0627..." style={{...C.input,resize:"none",marginBottom:"10px"}}/>
+      <button onClick={ask} disabled={loading||!q.trim()} style={{...C.primaryBtn,opacity:q.trim()?1:0.5,marginBottom:0}}><Bot size={16}/> \u0623\u0631\u0633\u0644 \u0627\u0644\u0633\u0624\u0627\u0644</button>
+    </div></div>
+  );
+}
+
+function ShareModal({onClose,video}) {
+  const link="https://edutok-neon.vercel.app/v/"+video.id;
+  return (
+    <div style={C.overlay}><div style={C.modalBox}>
+      <MHead icon={<Share2 size={20} color="#38bdf8"/>} title="\u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u062f\u0631\u0633" onClose={onClose}/>
+      <div style={{...C.card,marginBottom:"14px"}}>
+        <div style={{fontWeight:"bold",fontSize:"13px",marginBottom:"4px"}}>{video.title}</div>
+        <div style={{fontSize:"12px",color:"#71717a"}}>{link}</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+        {[["\u0648\u0627\u062a\u0633\u0627\u0628","#25D366"],["\u062a\u064a\u0644\u064a\u063a\u0631\u0627\u0645","#229ED9"],["\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637","#6366f1"],["\u0627\u0644\u0645\u0632\u064a\u062f","#f97316"]].map(([n,col])=>(
+          <button key={n} onClick={()=>{if(n==="\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"&&navigator.clipboard)navigator.clipboard.writeText(link);onClose();}} style={{padding:"12px",borderRadius:"12px",border:"none",backgroundColor:col,color:"#fff",fontSize:"13px",fontWeight:"bold",cursor:"pointer"}}>{n}</button>
+        ))}
+      </div>
+    </div></div>
+  );
+}
+
+function ChatModal({onClose}) {
+  const [msg,setMsg]=useState("");
+  const [msgs,setMsgs]=useState([{text:"\u0647\u0644 \u0634\u0631\u062d \u0627\u0644\u0623\u0633\u062a\u0627\u0630 \u0648\u0627\u0636\u062d\u061f",from:"other",name:"\u0623\u062d\u0645\u062f"},{text:"\u0646\u0639\u0645 \u0645\u0645\u062a\u0627\u0632",from:"me"}]);
+  const send=()=>{if(!msg.trim()) return; setMsgs(p=>[...p,{text:msg,from:"me"}]); setMsg("");};
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(168,85,247,0.2)"}}>
+      <MHead icon={<MessageCircle size={20} color="#a855f7"/>} title="\u063a\u0631\u0641\u0629 \u0627\u0644\u0646\u0642\u0627\u0634" color="#a855f7" onClose={onClose}/>
+      <div style={{backgroundColor:"#09090b",borderRadius:"12px",padding:"12px",marginBottom:"12px",maxHeight:"200px",overflowY:"auto"}}>
+        {msgs.map((m,i)=>(
+          <div key={i} style={{display:"flex",gap:"8px",marginBottom:"10px",justifyContent:m.from==="me"?"flex-end":"flex-start"}}>
+            {m.from!=="me"&&<div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#0ea5e9,#a855f7)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><User size={14} color="#fff"/></div>}
+            <div style={{backgroundColor:m.from==="me"?"rgba(168,85,247,0.2)":"#1c1c1e",borderRadius:"10px",padding:"8px 12px",maxWidth:"70%"}}>
+              {m.name&&<div style={{fontSize:"10px",color:"#71717a",marginBottom:"2px"}}>{m.name}</div>}
+              <div style={{fontSize:"13px"}}>{m.text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:"8px"}}>
+        <input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="\u0627\u0643\u062a\u0628 \u0631\u0633\u0627\u0644\u062a\u0643..." style={{flex:1,padding:"10px 14px",backgroundColor:"#09090b",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",color:"#fff",fontSize:"13px",outline:"none"}}/>
+        <button onClick={send} style={{padding:"10px 14px",backgroundColor:"#a855f7",border:"none",borderRadius:"10px",color:"#fff",cursor:"pointer",fontWeight:"bold"}}>\u0625\u0631\u0633\u0627\u0644</button>
+      </div>
+    </div></div>
+  );
+}
+
+function PDFModal({onClose,isSubbed}) {
+  const [files,setFiles]=useState([]); const [loading,setLoading]=useState(true);
+  useEffect(()=>{
+    const u=onSnapshot(collection(db,"pdfs"),snap=>{setFiles(snap.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);});
+    return ()=>u();
+  },[]);
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(249,115,22,0.2)"}}>
+      <MHead icon={<FileText size={20} color="#f97316"/>} title="\u0645\u0644\u0627\u0632\u0645 \u0648\u0628\u062d\u0648\u062b" color="#f97316" onClose={onClose}/>
+      {!isSubbed&&(
+        <div style={{backgroundColor:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"12px",padding:"12px",marginBottom:"14px",textAlign:"center"}}>
+          <div style={{color:"#fbbf24",fontWeight:"bold",fontSize:"14px",marginBottom:"4px"}}>\u0645\u062d\u062a\u0648\u0649 \u0645\u062f\u0641\u0648\u0639</div>
+          <div style={{color:"#71717a",fontSize:"12px",marginBottom:"10px"}}>\u0627\u0634\u062a\u0631\u0643 \u0644\u0644\u0648\u0635\u0648\u0644 \u0644\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0644\u0627\u0632\u0645</div>
+          <button onClick={onClose} style={{backgroundColor:"#f97316",border:"none",borderRadius:"10px",padding:"8px 20px",color:"#fff",fontSize:"13px",fontWeight:"bold",cursor:"pointer"}}>\u0627\u0634\u062a\u0631\u0643 \u0627\u0644\u0622\u0646</button>
+        </div>
+      )}
+      {loading
+        ? <div style={{textAlign:"center",padding:"20px"}}><Spinner color="#f97316"/></div>
+        : files.length===0
+          ? <div style={{textAlign:"center",padding:"24px",color:"#52525b"}}><FileText size={40} color="#3f3f46" style={{margin:"0 auto 8px"}}/><div>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0628\u0639\u062f</div></div>
+          : files.map(f=>(
+            <div key={f.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",...C.card}}>
+              <div><div style={{fontSize:"13px",fontWeight:"bold"}}>{f.name}</div><div style={{fontSize:"11px",color:"#71717a",marginTop:"2px"}}>{f.subject} - {f.stage}</div></div>
+              {isSubbed
+                ? <a href={f.url} target="_blank" rel="noreferrer" style={{backgroundColor:"rgba(249,115,22,0.15)",border:"1px solid rgba(249,115,22,0.3)",borderRadius:"8px",padding:"6px 12px",color:"#f97316",fontSize:"12px",fontWeight:"bold",textDecoration:"none"}}>\u062a\u062d\u0645\u064a\u0644</a>
+                : <button onClick={onClose} style={{backgroundColor:"rgba(234,179,8,0.15)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",padding:"6px 12px",color:"#fbbf24",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>\u0627\u0634\u062a\u0631\u0643</button>
+              }
+            </div>
+          ))
+      }
+    </div></div>
+  );
+}
+
+function SolveModal({onClose,video}) {
+  const [tab,setTab]=useState("text"); const [q,setQ]=useState("");
+  const [imgB64,setImgB64]=useState(null); const [imgPreview,setImgPreview]=useState(null);
+  const [ans,setAns]=useState(""); const [loading,setLoading]=useState(false);
+  const handleImageFile=(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{const full=ev.target.result;setImgPreview(full);setImgB64(full.split(",")[1]);};
+    reader.readAsDataURL(file);
+  };
+  const solve=async()=>{
+    setLoading(true); setAns("");
+    try{
+      let r;
+      if(tab==="text"){
+        r=await callGemini("\u0623\u0646\u062a \u0645\u0633\u0627\u0639\u062f \u062a\u0639\u0644\u064a\u0645\u064a. \u0627\u0644\u0637\u0627\u0644\u0628 \u064a\u062f\u0631\u0633 "+video.subject+". \u0627\u0644\u0633\u0624\u0627\u0644: "+q+". \u062d\u0644\u0647 \u062e\u0637\u0648\u0629 \u0628\u062e\u0637\u0648\u0629 \u0628\u0627\u0644\u0639\u0631\u0628\u064a\u0629.");
+      }else{
+        if(!imgB64){setAns("\u064a\u0631\u062c\u0649 \u0631\u0641\u0639 \u0635\u0648\u0631\u0629 \u0623\u0648\u0644\u0627\u064b.");setLoading(false);return;}
+        const solvePrompt="\u0623\u0646\u062a \u0645\u0633\u0627\u0639\u062f \u062a\u0639\u0644\u064a\u0645\u064a. \u0627\u0644\u0637\u0627\u0644\u0628 \u064a\u062f\u0631\u0633 "+video.subject+". \u0627\u0644\u0633\u0624\u0627\u0644: "+q+". \u062d\u0644\u0647 \u062e\u0637\u0648\u0629 \u0628\u062e\u0637\u0648\u0629 \u0628\u0627\u0644\u0639\u0631\u0628\u064a\u0629.";
+        r=await callGemini(solvePrompt);
+      }
+      setAns(r||"\u0644\u0645 \u0623\u062a\u0645\u0643\u0646 \u0645\u0646 \u0627\u0644\u0625\u062c\u0627\u0628\u0629.");
+    }catch(e){setAns("\u062e\u0637\u0623: "+e.message);}
+    setLoading(false);
+  };
+  const canSolve=tab==="text"?q.trim():imgB64;
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(52,211,153,0.2)"}}>
+      <MHead icon={<Camera size={20} color="#34d399"/>} title="\u062d\u0644 \u0627\u0644\u0623\u0633\u0626\u0644\u0629 \u0627\u0644\u0630\u0643\u064a" color="#34d399" onClose={onClose}/>
+      <div style={{display:"flex",gap:"8px",marginBottom:"14px"}}>
+        <button onClick={()=>setTab("text")} style={{flex:1,padding:"10px",borderRadius:"10px",border:"none",backgroundColor:tab==="text"?"#34d399":"#27272a",color:tab==="text"?"#000":"#a1a1aa",fontWeight:"bold",fontSize:"13px",cursor:"pointer"}}>\u0627\u0643\u062a\u0628 \u0627\u0644\u0633\u0624\u0627\u0644</button>
+        <button onClick={()=>setTab("img")} style={{flex:1,padding:"10px",borderRadius:"10px",border:"none",backgroundColor:tab==="img"?"#34d399":"#27272a",color:tab==="img"?"#000":"#a1a1aa",fontWeight:"bold",fontSize:"13px",cursor:"pointer"}}>\u0635\u0648\u0651\u0631 \u0627\u0644\u0633\u0624\u0627\u0644</button>
+      </div>
+      {tab==="text"&&<textarea rows={4} value={q} onChange={e=>setQ(e.target.value)} placeholder="\u0645\u062b\u0627\u0644: \u0627\u062d\u0633\u0628 \u0645\u0633\u0627\u062d\u0629 \u0645\u062b\u0644\u062b \u0642\u0627\u0639\u062f\u062a\u0647 6\u0633\u0645 \u0648\u0627\u0631\u062a\u0641\u0627\u0639\u0647 4\u0633\u0645" style={{...C.input,resize:"none"}}/>}
+      {tab==="img"&&(
+        <div style={{marginBottom:"12px"}}>
+          {imgPreview&&<img src={imgPreview} alt="" style={{width:"100%",maxHeight:"200px",objectFit:"contain",borderRadius:"12px",marginBottom:"8px",border:"1px solid rgba(255,255,255,0.1)"}}/>}
+          <label style={{display:"block",width:"100%",padding:"14px",backgroundColor:"rgba(52,211,153,0.08)",border:"2px dashed rgba(52,211,153,0.35)",borderRadius:"14px",textAlign:"center",cursor:"pointer",boxSizing:"border-box"}}>
+            <Camera size={26} color="#34d399" style={{margin:"0 auto 6px"}}/>
+            <div style={{fontSize:"13px",color:"#34d399",fontWeight:"bold"}}>{imgPreview?"\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0635\u0648\u0631\u0629":"\u0635\u0648\u0651\u0631 \u0627\u0644\u0633\u0624\u0627\u0644 \u0623\u0648 \u0627\u062e\u062a\u0631\u0647 \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0636"}</div>
+            <input type="file" accept="image/*" style={{display:"none"}} onChange={handleImageFile}/>
+          </label>
+        </div>
+      )}
+      {ans&&<div style={{backgroundColor:"#09090b",borderRadius:"12px",padding:"14px",fontSize:"14px",color:"#e4e4e7",lineHeight:"1.8",marginBottom:"14px",border:"1px solid rgba(52,211,153,0.15)",whiteSpace:"pre-wrap",maxHeight:"240px",overflowY:"auto"}}><div style={{color:"#34d399",fontSize:"11px",fontWeight:"bold",marginBottom:"6px"}}>\u0627\u0644\u062d\u0644:</div>{ans}</div>}
+      {loading&&<div style={{textAlign:"center",padding:"12px"}}><Spinner color="#34d399"/><div style={{marginTop:"8px",fontSize:"13px",color:"#34d399"}}>\u062c\u0627\u0631\u064d \u0627\u0644\u062d\u0644...</div></div>}
+      {!ans&&!loading&&<button onClick={solve} disabled={!canSolve} style={{...C.purpleBtn,background:canSolve?"linear-gradient(to right,#059669,#34d399)":"#27272a",opacity:canSolve?1:0.5}}><Bot size={16}/> \u062d\u0644 \u0627\u0644\u0633\u0624\u0627\u0644 \u0628\u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a</button>}
+      {ans&&<div style={{display:"flex",gap:"10px"}}><button onClick={()=>{setAns("");setQ("");setImgB64(null);setImgPreview(null);}} style={C.cancelBtn}>\u0633\u0624\u0627\u0644 \u062c\u062f\u064a\u062f</button><button onClick={onClose} style={C.saveBtn}>\u0625\u063a\u0644\u0627\u0642</button></div>}
+    </div></div>
+  );
+}
+
+function SearchModal({onClose,allVideos}) {
+  const [q,setQ]=useState("");
+  const filtered=allVideos.filter(v=>!q||(v.title&&v.title.includes(q))||(v.subject&&v.subject.includes(q)));
+  return (
+    <div style={C.overlay}><div style={C.modalBox}>
+      <MHead icon={<Search size={20} color="#38bdf8"/>} title="\u0627\u0644\u0628\u062d\u062b \u0641\u064a \u0627\u0644\u0645\u0642\u0627\u0637\u0639" onClose={onClose}/>
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="\u0627\u0628\u062d\u062b \u0639\u0646 \u062f\u0631\u0633 \u0623\u0648 \u0645\u0627\u062f\u0629..." style={{...C.input,marginBottom:"14px"}}/>
+      {filtered.map((v,i)=>(
+        <div key={i} onClick={onClose} style={{display:"flex",alignItems:"center",gap:"10px",...C.card,cursor:"pointer"}}>
+          <div style={{width:36,height:36,borderRadius:"8px",background:v.bg||"linear-gradient(135deg,#1e1b4b,#312e81)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            {v.thumbUrl?<img src={v.thumbUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"8px"}}/>:<Film size={16} color="#fff"/>}
+          </div>
+          <div><div style={{fontSize:"13px",fontWeight:"bold"}}>{v.title}</div><div style={{fontSize:"11px",color:"#71717a"}}>{v.subject} - {v.stage}</div></div>
+        </div>
+      ))}
+    </div></div>
+  );
+}
+
+function SavedModal({onClose,saved,video}) {
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(34,211,238,0.2)"}}>
+      <MHead icon={<Bookmark size={20} color="#22d3ee"/>} title="\u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0627\u062a" color="#22d3ee" onClose={onClose}/>
+      {saved
+        ? <div style={{display:"flex",alignItems:"center",gap:"10px",...C.card,border:"1px solid rgba(34,211,238,0.2)"}}><Bookmark size={18} color="#22d3ee" fill="#22d3ee"/><div><div style={{fontSize:"13px",fontWeight:"bold"}}>{video.title}</div><div style={{fontSize:"11px",color:"#71717a"}}>{video.subject}</div></div></div>
+        : <div style={{textAlign:"center",padding:"24px",color:"#52525b"}}><Bookmark size={40} color="#3f3f46" style={{margin:"0 auto 8px"}}/><div style={{fontSize:"14px"}}>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0642\u0627\u0637\u0639 \u0645\u062d\u0641\u0648\u0638\u0629 \u0628\u0639\u062f</div></div>
+      }
+    </div></div>
+  );
+}
+
+function AdminLoginModal({onClose,onSuccess}) {
+  const [phone,setPhone]=useState(""); const [pass,setPass]=useState(""); const [err,setErr]=useState("");
+  const login=()=>{if(phone===ADMIN_PHONE&&pass===ADMIN_PASS)onSuccess();else setErr("\u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062a\u0641 \u0623\u0648 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629");};
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,maxWidth:"340px",border:"1px solid rgba(234,179,8,0.2)"}}>
+      <div style={{textAlign:"center",marginBottom:"20px"}}>
+        <GraduationCap size={40} color="#eab308" style={{margin:"0 auto 8px"}}/>
+        <h3 style={{color:"#eab308",fontWeight:"bold",fontSize:"18px",margin:"0 0 4px"}}>\u062f\u062e\u0648\u0644 \u0627\u0644\u0645\u062f\u064a\u0631</h3>
+      </div>
+      <label style={C.label}>\u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062a\u0641</label>
+      <input type="text" value={phone} onChange={e=>{setPhone(e.target.value);setErr("");}} placeholder="07XX XXX XXXX" style={C.input}/>
+      <label style={C.label}>\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>
+      <input type="password" value={pass} onChange={e=>{setPass(e.target.value);setErr("");}} placeholder="\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631" style={C.input} onKeyDown={e=>e.key==="Enter"&&login()}/>
+      <ErrBox msg={err}/>
+      <button onClick={login} style={{...C.gradBtn,background:"linear-gradient(to right,#eab308,#f97316)"}}>\u062f\u062e\u0648\u0644 \u0644\u0648\u062d\u0629 \u0627\u0644\u0625\u062f\u0627\u0631\u0629</button>
+      <button onClick={onClose} style={{width:"100%",padding:"12px",backgroundColor:"transparent",color:"#71717a",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",fontSize:"14px",cursor:"pointer"}}>\u0625\u0644\u063a\u0627\u0621</button>
+    </div></div>
+  );
+}
+
+function WalletModal({onClose,student,subscriptions}) {
+  const [selSubject,setSelSubject]=useState(SUBJECTS[0]);
+  const [selStage,setSelStage]=useState(STAGES[0]);
+  const [selDuration,setSelDuration]=useState(DURATIONS[0]);
+  const [amount,setAmount]=useState(""); const [receipt,setReceipt]=useState(null);
+  const [sending,setSending]=useState(false); const [sent,setSent]=useState(false);
+  const sendPayment=async()=>{
+    if(!amount.trim()) return showMsg("\u0623\u062f\u062e\u0644 \u0627\u0644\u0645\u0628\u0644\u063a \u0627\u0644\u0645\u062d\u0648\u0651\u0644");
+    setSending(true);
+    try{
+      await addDoc(collection(db,"payments"),{studentName:student?student.name:"",studentPhone:student?student.phone:"",studentId:student?student.id:"",subject:selSubject,stage:selStage,duration:selDuration.days,durationLabel:selDuration.label,amount,receiptUrl:receipt||"",status:"pending",createdAt:serverTimestamp()});
+      setSent(true);
+    }catch(e){showMsg("\u062d\u062f\u062b \u062e\u0637\u0623: "+e.message);}
+    setSending(false);
+  };
+  if(sent) return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(34,197,94,0.2)",textAlign:"center"}}>
+      <div style={{fontSize:"56px",marginBottom:"12px"}}>✓</div>
+      <div style={{color:"#4ade80",fontWeight:"bold",fontSize:"18px",marginBottom:"8px"}}>\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643!</div>
+      <div style={{color:"#a1a1aa",fontSize:"13px",marginBottom:"16px"}}>\u0633\u064a\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0634\u062a\u0631\u0627\u0643\u0643 \u0628\u0639\u062f \u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u062f\u064a\u0631</div>
+      <button onClick={onClose} style={C.primaryBtn}>\u0625\u063a\u0644\u0627\u0642</button>
+    </div></div>
+  );
+  return (
+    <div style={C.overlay}><div style={{...C.modalBox,border:"1px solid rgba(34,197,94,0.2)"}}>
+      <MHead icon={<DollarSign size={20} color="#4ade80"/>} title="\u0645\u062d\u0641\u0638\u0629 \u0632\u064a\u0646 \u0643\u0627\u0634" color="#4ade80" onClose={onClose}/>
+      {subscriptions&&Object.keys(subscriptions).length>0&&(
+        <div style={{marginBottom:"14px"}}>
+          <div style={{fontSize:"12px",fontWeight:"bold",color:"#38bdf8",marginBottom:"6px"}}>\u0627\u0634\u062a\u0631\u0627\u0643\u0627\u062a\u064a \u0627\u0644\u0646\u0634\u0637\u0629:</div>
+          {Object.entries(subscriptions).map(([key,sub])=>{
+            const parts=key.split("__"); const d=daysLeft(subscriptions,parts[0],parts[1]);
+            return (
+              <div key={key} style={{...C.card,marginBottom:"6px",border:"1px solid rgba(34,197,94,0.2)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div><div style={{fontWeight:"bold",fontSize:"12px"}}>{sub.subject}</div><div style={{fontSize:"10px",color:"#71717a"}}>{sub.stage}</div></div>
+                  <div style={{color:d>3?"#4ade80":d>0?"#fbbf24":"#f87171",fontSize:"12px",fontWeight:"bold"}}>{d>0?d+" \u064a\u0648\u0645":"\u0645\u0646\u062a\u0647\u064a"}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div style={{backgroundColor:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:"12px",padding:"16px",marginBottom:"14px",textAlign:"center"}}>
+        <div style={{fontSize:"12px",color:"#a1a1aa",marginBottom:"4px"}}>\u0631\u0642\u0645 \u0632\u064a\u0646 \u0643\u0627\u0634 \u0644\u0644\u0645\u062f\u064a\u0631</div>
+        <div style={{fontSize:"22px",fontWeight:"bold",color:"#4ade80",letterSpacing:"2px"}}>{ZAINCASH_NUM}</div>
+        <div style={{fontSize:"11px",color:"#71717a",marginTop:"4px"}}>\u062d\u0648\u0651\u0644 \u0627\u0644\u0645\u0628\u0644\u063a \u062b\u0645 \u0623\u0631\u0633\u0644 \u0627\u0644\u0625\u064a\u0635\u0627\u0644</div>
+      </div>
+      <label style={C.label}>\u0627\u0644\u0645\u0627\u062f\u0629</label>
+      <select value={selSubject} onChange={e=>setSelSubject(e.target.value)} style={C.select}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select>
+      <label style={C.label}>\u0627\u0644\u0645\u0631\u062d\u0644\u0629</label>
+      <select value={selStage} onChange={e=>setSelStage(e.target.value)} style={C.select}>{STAGES.map(s=><option key={s}>{s}</option>)}</select>
+      <label style={C.label}>\u0645\u062f\u0629 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643</label>
+      <div style={{display:"flex",gap:"6px",marginBottom:"14px"}}>
+        {DURATIONS.map(d=>(
+          <button key={d.days} onClick={()=>setSelDuration(d)} style={{flex:1,padding:"9px 4px",borderRadius:"10px",border:"none",backgroundColor:selDuration.days===d.days?"#4ade80":"#27272a",color:selDuration.days===d.days?"#000":"#a1a1aa",fontWeight:"bold",fontSize:"10px",cursor:"pointer"}}>{d.label}</button>
+        ))}
+      </div>
+      <label style={C.label}>\u0627\u0644\u0645\u0628\u0644\u063a \u0627\u0644\u0645\u062d\u0648\u0651\u0644 (\u062f.\u0639)</label>
+      <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="\u0623\u062f\u062e\u0644 \u0627\u0644\u0645\u0628\u0644\u063a" style={C.input}/>
+      <label style={C.label}>\u0625\u064a\u0635\u0627\u0644 \u0627\u0644\u062a\u062d\u0648\u064a\u0644</label>
+      <ImageUploader onUpload={url=>setReceipt(url)} onBase64={()=>{}} color="#4ade80" label="\u0635\u0648\u0651\u0631 \u0625\u064a\u0635\u0627\u0644 \u0632\u064a\u0646 \u0643\u0627\u0634"/>
+      {sending
+        ? <div style={{textAlign:"center",padding:"12px"}}><Spinner color="#4ade80"/></div>
+        : <button onClick={sendPayment} style={{...C.primaryBtn,background:"linear-gradient(to right,#15803d,#4ade80)",marginBottom:0}}>\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643 \u0644\u0644\u0645\u062f\u064a\u0631</button>
+      }
+    </div></div>
+  );
+}
+
+function SlidesStudio({slidesTheme,setSlidesTheme,onSaveClip}) {
+  const [mode,setMode]=useState("menu"); const [topic,setTopic]=useState("");
+  const [imgB64,setImgB64]=useState(null); const [imgPreview,setImgPreview]=useState(null);
+  const [slidesCount,setCount]=useState(6); const [loading,setLoading]=useState(false);
+  const [loadMsg,setLoadMsg]=useState(""); const [slides,setSlides]=useState([]);
+  const [curSlide,setCurSlide]=useState(0); const [clipTitle,setClipTitle]=useState("");
+  const [clipSubj,setClipSubj]=useState("\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a"); const [clipStage,setClipStage]=useState("\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629");
+  const [saving,setSaving]=useState(false);
+  const JSONSUFFIX=` \u0623\u062c\u0628 \u0628\u0640 JSON \u0641\u0642\u0637: {"title":"\u0627\u0644\u0639\u0646\u0648\u0627\u0646","slides":[{"title":"\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0634\u0631\u064a\u062d\u0629","points":["\u0646\u0642\u0637\u0629 1","\u0646\u0642\u0637\u0629 2","\u0646\u0642\u0637\u0629 3"]}]}`;
+
+  const generate=async(fromImage)=>{
+    setLoading(true);
+    setLoadMsg(fromImage?"Gemini \u064a\u0642\u0631\u0623 \u0627\u0644\u0648\u0631\u0642\u0629...":"Gemini \u064a\u0628\u0646\u064a \u0627\u0644\u0634\u0631\u0627\u0626\u062d...");
+    try{
+      let raw;
+      if(fromImage){
+        if(!imgB64){showMsg("\u064a\u0631\u062c\u0649 \u0631\u0641\u0639 \u0635\u0648\u0631\u0629 \u0623\u0648\u0644\u0627\u064b");setLoading(false);return;}
+        raw=await callGemini("\u0627\u0642\u0631\u0623 \u0647\u0630\u0647 \u0627\u0644\u0648\u0631\u0642\u0629 \u0627\u0644\u062f\u0631\u0627\u0633\u064a\u0629 \u0648\u062d\u0648\u0651\u0644 \u0645\u062d\u062a\u0648\u0627\u0647\u0627 \u0625\u0644\u0649 "+slidesCount+" \u0634\u0631\u0627\u0626\u062d \u062a\u0639\u0644\u064a\u0645\u064a\u0629."+JSONSUFFIX,imgB64);
+      }else{
+        if(!topic.trim()){showMsg("\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0645\u0648\u0636\u0648\u0639");setLoading(false);return;}
+        raw=await callGemini("\u0623\u0646\u0634\u0626 "+slidesCount+" \u0634\u0631\u0627\u0626\u062d \u062a\u0639\u0644\u064a\u0645\u064a\u0629 \u0639\u0646 \u0627\u0644\u0645\u0648\u0636\u0648\u0639: "+topic+". \u0643\u0644 \u0634\u0631\u064a\u062d\u0629 3-4 \u0646\u0642\u0627\u0637."+JSONSUFFIX);
+      }
+      const clean=raw.replace(/```json/g,"").replace(/```/g,"").trim();
+      const start=clean.indexOf("{"); const end=clean.lastIndexOf("}");
+      const parsed=JSON.parse(clean.substring(start,end+1));
+      setSlides(parsed.slides||[]); setClipTitle(parsed.title||(fromImage?"\u0634\u0631\u0627\u0626\u062d \u0645\u0646 \u0648\u0631\u0642\u0629":topic));
+      setCurSlide(0); setMode("result");
+    }catch(e){showMsg("\u062d\u062f\u062b \u062e\u0637\u0623: "+e.message+". \u062d\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.");}
+    setLoading(false);
+  };
+
+  const saveToFirestore=async()=>{
+    if(!clipTitle.trim()) return showMsg("\u0623\u062f\u062e\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0642\u0637\u0639");
+    setSaving(true);
+    try{
+      await addDoc(collection(db,"clips"),{title:clipTitle,subject:clipSubj,stage:clipStage,slides,theme:slidesTheme,type:"\u0634\u0631\u0627\u0626\u062d AI",bg:"linear-gradient(135deg,#1e1b4b,#312e81)",createdAt:serverTimestamp()});
+      onSaveClip({title:clipTitle,subject:clipSubj,stage:clipStage,slides,theme:slidesTheme,type:"\u0634\u0631\u0627\u0626\u062d AI",bg:"linear-gradient(135deg,#1e1b4b,#312e81)"});
+      showMsg("\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0634\u0631\u0627\u0626\u062d \u0641\u064a Firebase!");
+      setMode("menu");
+    }catch(e){showMsg("\u0641\u0634\u0644 \u0627\u0644\u062d\u0641\u0638: "+e.message);}
+    setSaving(false);
+  };
+
+  const ts=THEME_STYLES[slidesTheme]||THEME_STYLES["\u0623\u0632\u0631\u0642 \u0645\u062a\u062f\u0631\u062c"];
+  const back=(
+    <button onClick={()=>setMode("menu")} style={{background:"none",border:"none",color:"#71717a",cursor:"pointer",fontSize:"13px",marginBottom:"14px",display:"flex",alignItems:"center",gap:"4px"}}>
+      \u0631\u062c\u0648\u0639
+    </button>
+  );
+  const countBtns=(
+    <div style={{display:"flex",gap:"8px",marginBottom:"14px"}}>
+      {[4,6,8,10,12].map(n=>(
+        <button key={n} onClick={()=>setCount(n)} style={{flex:1,padding:"9px",borderRadius:"10px",border:"none",backgroundColor:slidesCount===n?"#7c3aed":"#27272a",color:slidesCount===n?"#fff":"#a1a1aa",fontWeight:"bold",fontSize:"13px",cursor:"pointer"}}>{n}</button>
+      ))}
+    </div>
+  );
+
+  if(mode==="menu") return (
+    <div>
+      <div style={{background:"linear-gradient(135deg,#1e1b4b,#312e81)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"16px",padding:"24px",textAlign:"center",marginBottom:"16px"}}>
+        <Sparkles size={36} color="#c4b5fd" style={{margin:"0 auto 8px"}}/>
+        <div style={{fontSize:"18px",fontWeight:"bold",color:"#c4b5fd",marginBottom:"4px"}}>\u0627\u0633\u062a\u0648\u062f\u064a\u0648 \u0627\u0644\u0634\u0631\u0627\u0626\u062d \u0627\u0644\u0630\u0643\u064a</div>
+        <div style={{fontSize:"13px",color:"#8b8ba0"}}>\u0645\u062f\u0639\u0648\u0645 \u0628\u0640 Google Gemini AI</div>
+      </div>
+      <div style={{...C.twoCol,marginBottom:"16px"}}>
+        <div onClick={()=>setMode("image")} style={{backgroundColor:"rgba(88,28,135,0.25)",border:"1px solid rgba(139,92,246,0.35)",borderRadius:"16px",padding:"20px 14px",textAlign:"center",cursor:"pointer"}}>
+          <Camera size={32} color="#a855f7" style={{margin:"0 auto 8px"}}/>
+          <div style={{fontSize:"13px",fontWeight:"bold",color:"#c4b5fd"}}>\u0635\u0648\u0651\u0631 \u0648\u0631\u0642\u0629 \u0627\u0644\u0643\u062a\u0627\u0628</div>
+          <div style={{fontSize:"11px",color:"#71717a",marginTop:"4px"}}>Gemini \u064a\u0642\u0631\u0623\u0647\u0627 \u0648\u064a\u062d\u0648\u0651\u0644\u0647\u0627</div>
+        </div>
+        <div onClick={()=>setMode("text")} style={{backgroundColor:"rgba(3,105,161,0.25)",border:"1px solid rgba(56,189,248,0.35)",borderRadius:"16px",padding:"20px 14px",textAlign:"center",cursor:"pointer"}}>
+          <BookOpen size={32} color="#38bdf8" style={{margin:"0 auto 8px"}}/>
+          <div style={{fontSize:"13px",fontWeight:"bold",color:"#38bdf8"}}>\u0643\u062a\u0627\u0628\u0629 \u0645\u0648\u0636\u0648\u0639</div>
+          <div style={{fontSize:"11px",color:"#71717a",marginTop:"4px"}}>Gemini \u064a\u0628\u0646\u064a \u0627\u0644\u0634\u0631\u0627\u0626\u062d</div>
+        </div>
+      </div>
+      <div style={{fontSize:"13px",color:"#38bdf8",fontWeight:"bold",marginBottom:"8px",display:"flex",alignItems:"center",gap:"6px"}}><Layers size={14}/> \u0627\u0644\u062b\u064a\u0645</div>
+      <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+        {THEMES.map(t=>(
+          <button key={t.label} onClick={()=>setSlidesTheme(t.label)} style={{padding:"8px 14px",borderRadius:"10px",border:slidesTheme===t.label?"2px solid #38bdf8":"none",backgroundColor:t.color,color:"#fff",fontSize:"12px",fontWeight:"bold",cursor:"pointer"}}>{t.label}</button>
+        ))}
+      </div>
+    </div>
+  );
+
+  if(mode==="image") return (
+    <div>
+      {back}
+      <div style={{fontSize:"15px",fontWeight:"bold",marginBottom:"12px",display:"flex",alignItems:"center",gap:"8px"}}>
+        <Camera size={18} color="#a855f7"/> \u0635\u0648\u0651\u0631 \u0648\u0631\u0642\u0629 \u0627\u0644\u0643\u062a\u0627\u0628
+      </div>
+      <div style={{backgroundColor:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"12px",padding:"10px 14px",marginBottom:"12px",fontSize:"12px",color:"#c4b5fd"}}>
+        \u0635\u0648\u0651\u0631 \u0635\u0641\u062d\u0629 \u0627\u0644\u0643\u062a\u0627\u0628 \u0623\u0648 \u0627\u0644\u0648\u0631\u0642\u0629 — Groq \u0633\u064a\u0642\u0631\u0623\u0647\u0627 \u0648\u064a\u062d\u0648\u0651\u0644\u0647\u0627 \u0644\u0634\u0631\u0627\u0626\u062d \u062a\u0639\u0644\u064a\u0645\u064a\u0629
+      </div>
+      <div style={{marginBottom:"12px"}}>
+        {imgPreview&&<img src={imgPreview} alt="" style={{width:"100%",maxHeight:"200px",objectFit:"contain",borderRadius:"12px",marginBottom:"8px",border:"1px solid rgba(255,255,255,0.1)"}}/>}
+        <label style={{display:"block",width:"100%",padding:"14px",backgroundColor:"rgba(139,92,246,0.08)",border:"2px dashed rgba(139,92,246,0.35)",borderRadius:"14px",textAlign:"center",cursor:"pointer",boxSizing:"border-box"}}>
+          <Camera size={26} color="#a855f7" style={{margin:"0 auto 6px"}}/>
+          <div style={{fontSize:"13px",color:"#a855f7",fontWeight:"bold"}}>{imgPreview?"\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0635\u0648\u0631\u0629":"\u0635\u0648\u0651\u0631 \u0635\u0641\u062d\u0629 \u0627\u0644\u0643\u062a\u0627\u0628 \u0623\u0648 \u0627\u062e\u062a\u0631 \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0636"}</div>
+          <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{
+            const file=e.target.files[0]; if(!file) return;
+            const reader=new FileReader();
+            reader.onload=(ev)=>{const full=ev.target.result;setImgPreview(full);setImgB64(full.split(",")[1]);};
+            reader.readAsDataURL(file);
+          }}/>
+        </label>
+      </div>
+      <label style={C.label}>\u0639\u062f\u062f \u0627\u0644\u0634\u0631\u0627\u0626\u062d</label>
+      {countBtns}
+      {loading
+        ? <div style={{textAlign:"center",padding:"20px"}}><Spinner color="#a855f7"/><div style={{marginTop:"10px",fontSize:"14px",color:"#a855f7",fontWeight:"bold"}}>{loadMsg}</div></div>
+        : <button disabled={!imgB64} onClick={()=>generate(true)} style={{...C.purpleBtn,opacity:imgB64?1:0.5}}>Groq \u064a\u0642\u0631\u0623 \u0627\u0644\u0648\u0631\u0642\u0629 \u0648\u064a\u0628\u0646\u064a \u0627\u0644\u0634\u0631\u0627\u0626\u062d</button>
+      }
+    </div>
+  );
+
+  if(mode==="text") return (
+    <div>
+      {back}
+      <div style={{fontSize:"15px",fontWeight:"bold",marginBottom:"12px",display:"flex",alignItems:"center",gap:"8px"}}>
+        <BookOpen size={18} color="#38bdf8"/> \u0643\u062a\u0627\u0628\u0629 \u0645\u0648\u0636\u0648\u0639
+      </div>
+      <label style={C.label}>\u0645\u0648\u0636\u0648\u0639 \u0627\u0644\u0634\u0631\u0627\u0626\u062d</label>
+      <textarea rows={3} value={topic} onChange={e=>setTopic(e.target.value)} placeholder="\u0645\u062b\u0627\u0644: \u0627\u0644\u062c\u0647\u0627\u0632 \u0627\u0644\u062a\u0646\u0641\u0633\u064a \u0641\u064a \u062c\u0633\u0645 \u0627\u0644\u0625\u0646\u0633\u0627\u0646" style={{...C.input,resize:"none"}}/>
+      <label style={C.label}>\u0639\u062f\u062f \u0627\u0644\u0634\u0631\u0627\u0626\u062d</label>
+      {countBtns}
+      {loading
+        ? <div style={{textAlign:"center",padding:"20px"}}><Spinner/><div style={{marginTop:"10px",fontSize:"14px",color:"#38bdf8",fontWeight:"bold"}}>{loadMsg}</div></div>
+        : <button onClick={()=>generate(false)} disabled={!topic.trim()} style={{...C.purpleBtn,opacity:topic.trim()?1:0.5}}>Gemini \u064a\u0628\u0646\u064a \u0627\u0644\u0634\u0631\u0627\u0626\u062d \u0627\u0644\u0622\u0646</button>
+      }
+    </div>
+  );
+
+  if(mode==="result") {
+    const sl=slides[curSlide]||{};
+    return (
+      <div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"14px"}}>
+          {back}
+          <span style={{color:"#a1a1aa",fontSize:"12px"}}>{curSlide+1} / {slides.length}</span>
+        </div>
+        <div style={{background:ts.bg,borderRadius:"20px",padding:"24px 18px",minHeight:"220px",marginBottom:"14px",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{backgroundColor:ts.card,borderRadius:"8px",padding:"4px 12px",display:"inline-block",marginBottom:"12px",border:"1px solid "+ts.accent+"44"}}>
+            <span style={{color:ts.accent,fontSize:"11px",fontWeight:"bold"}}>\u0634\u0631\u064a\u062d\u0629 {curSlide+1}</span>
+          </div>
+          <h3 style={{color:"#fff",fontSize:"17px",fontWeight:"bold",margin:"0 0 12px",lineHeight:"1.5"}}>{sl.title}</h3>
+          <ul style={{listStyle:"none",padding:0,margin:0}}>
+            {(sl.points||[]).map((pt,i)=>(
+              <li key={i} style={{display:"flex",alignItems:"flex-start",gap:"8px",marginBottom:"8px",color:"rgba(255,255,255,0.88)",fontSize:"13px",lineHeight:"1.6"}}>
+                <span style={{color:ts.accent,flexShrink:0}}>◆</span>{pt}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div style={{display:"flex",gap:"5px",justifyContent:"center",marginBottom:"12px",flexWrap:"wrap"}}>
+          {slides.map((_,i)=>(
+            <div key={i} onClick={()=>setCurSlide(i)} style={{width:i===curSlide?"18px":"7px",height:"7px",borderRadius:"4px",backgroundColor:i===curSlide?ts.accent:"#3f3f46",cursor:"pointer",transition:"width 0.2s"}}/>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>
+          <button disabled={curSlide===0} onClick={()=>setCurSlide(i=>i-1)} style={{flex:1,padding:"11px",borderRadius:"12px",border:"none",backgroundColor:curSlide===0?"#1c1c1e":"#27272a",color:curSlide===0?"#3f3f46":"#fff",cursor:curSlide===0?"not-allowed":"pointer",fontWeight:"bold"}}>\u0627\u0644\u0633\u0627\u0628\u0642</button>
+          <button disabled={curSlide===slides.length-1} onClick={()=>setCurSlide(i=>i+1)} style={{flex:1,padding:"11px",borderRadius:"12px",border:"none",backgroundColor:curSlide===slides.length-1?"#1c1c1e":"#27272a",color:curSlide===slides.length-1?"#3f3f46":"#fff",cursor:curSlide===slides.length-1?"not-allowed":"pointer",fontWeight:"bold"}}>\u0627\u0644\u062a\u0627\u0644\u064a</button>
+        </div>
+        <div style={{...C.card,border:"1px solid rgba(56,189,248,0.15)"}}>
+          <div style={{fontSize:"13px",fontWeight:"bold",color:"#38bdf8",marginBottom:"10px"}}>\u062d\u0641\u0638 \u0641\u064a Firebase</div>
+          <input value={clipTitle} onChange={e=>setClipTitle(e.target.value)} placeholder="\u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0642\u0637\u0639" style={{...C.input,marginBottom:"8px"}}/>
+          <div style={{...C.twoCol,marginBottom:"10px"}}>
+            <select value={clipSubj} onChange={e=>setClipSubj(e.target.value)} style={{padding:"10px",backgroundColor:"#09090b",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",color:"#fff",fontSize:"12px",outline:"none"}}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select>
+            <select value={clipStage} onChange={e=>setClipStage(e.target.value)} style={{padding:"10px",backgroundColor:"#09090b",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",color:"#fff",fontSize:"12px",outline:"none"}}>{STAGES.map(s=><option key={s}>{s}</option>)}</select>
+          </div>
+          <button onClick={saveToFirestore} disabled={saving} style={{...C.primaryBtn,marginBottom:0,opacity:saving?0.7:1}}>
+            {saving?<><Spinner size={16}/> \u062c\u0627\u0631\u064d \u0627\u0644\u062d\u0641\u0638...</>:<><Save size={16}/> \u062d\u0641\u0638 \u0627\u0644\u0634\u0631\u0627\u0626\u062d \u0641\u064a Firebase</>}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function AdminPDFTab() {
+  const [pdfs,setPdfs]=useState([]); const [showForm,setShowForm]=useState(false);
+  const [editingPdf,setEditingPdf]=useState(null); const [confirmDelete,setConfirmDelete]=useState(null);
+  const [pdfName,setPdfName]=useState(""); const [pdfSubject,setPdfSubject]=useState("\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a");
+  const [pdfStage,setPdfStage]=useState("\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629"); const [pdfUrl,setPdfUrl]=useState("");
+  const [pdfThumb,setPdfThumb]=useState(null); const [saving,setSaving]=useState(false);
+  useEffect(()=>{ const u=onSnapshot(collection(db,"pdfs"),snap=>{setPdfs(snap.docs.map(d=>({id:d.id,...d.data()})));});return()=>u();},[]);
+  const openEdit=(f)=>{setEditingPdf(f);setPdfName(f.name||"");setPdfSubject(f.subject||"\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a");setPdfStage(f.stage||"\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629");setPdfUrl(f.url||"");setShowForm(true);};
+  const doDelete=async(f)=>{try{await deleteDoc(doc(db,"pdfs",f.id));showMsg("\u062a\u0645 \u0627\u0644\u062d\u0630\u0641");}catch(e){showMsg("\u0641\u0634\u0644: "+e.message);}setConfirmDelete(null);};
+  const savePDF=async()=>{
+    if(!pdfName.trim()||!pdfUrl.trim()) return showMsg("\u0623\u062f\u062e\u0644 \u0627\u0644\u0627\u0633\u0645 \u0648\u0627\u0644\u0631\u0627\u0628\u0637");
+    setSaving(true);
+    try{
+      if(editingPdf&&editingPdf.id){await updateDoc(doc(db,"pdfs",editingPdf.id),{name:pdfName,subject:pdfSubject,stage:pdfStage,url:pdfUrl});showMsg("\u062a\u0645 \u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0644\u0641");}
+      else{await addDoc(collection(db,"pdfs"),{name:pdfName,subject:pdfSubject,stage:pdfStage,url:pdfUrl,thumbUrl:pdfThumb,createdAt:serverTimestamp()});showMsg("\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0641");}
+      setShowForm(false);setEditingPdf(null);setPdfName("");setPdfUrl("");setPdfThumb(null);
+    }catch(e){showMsg("\u0641\u0634\u0644: "+e.message);}
+    setSaving(false);
+  };
+  return (
+    <div>
+      <div style={C.infoBanner}><FileText size={15}/> \u0627\u0644\u0645\u0644\u0627\u0632\u0645 \u0648\u0627\u0644\u0628\u062d\u0648\u062b \u0627\u0644\u0645\u062f\u0641\u0648\u0639\u0629</div>
+      {confirmDelete&&(
+        <div style={{backgroundColor:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"14px",padding:"16px",marginBottom:"14px",textAlign:"center"}}>
+          <div style={{color:"#f87171",fontWeight:"bold",marginBottom:"8px"}}>\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641\u061f</div>
+          <div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
+            <button onClick={()=>doDelete(confirmDelete)} style={{padding:"8px 20px",backgroundColor:"#ef4444",border:"none",borderRadius:"8px",color:"#fff",fontWeight:"bold",cursor:"pointer"}}>\u0646\u0639\u0645</button>
+            <button onClick={()=>setConfirmDelete(null)} style={{padding:"8px 20px",backgroundColor:"#27272a",border:"none",borderRadius:"8px",color:"#fff",cursor:"pointer"}}>\u0644\u0627</button>
+          </div>
+        </div>
+      )}
+      {pdfs.map(f=>(
+        <div key={f.id} style={{...C.card,border:"1px solid rgba(249,115,22,0.2)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+            {f.thumbUrl&&<img src={f.thumbUrl} alt="" style={{width:40,height:40,borderRadius:"8px",objectFit:"cover"}}/>}
+            <div style={{flex:1}}><div style={{fontWeight:"bold",fontSize:"14px"}}>{f.name}</div><div style={{fontSize:"12px",color:"#71717a"}}>{f.subject} - {f.stage}</div></div>
+            <a href={f.url} target="_blank" rel="noreferrer" style={{backgroundColor:"rgba(249,115,22,0.15)",border:"1px solid rgba(249,115,22,0.3)",borderRadius:"8px",padding:"6px 10px",color:"#f97316",fontSize:"12px",textDecoration:"none",fontWeight:"bold"}}>\u0641\u062a\u062d</a>
+          </div>
+          <div style={{display:"flex",gap:"8px"}}>
+            <button onClick={()=>openEdit(f)} style={{flex:1,padding:"7px",borderRadius:"8px",border:"1px solid rgba(56,189,248,0.3)",backgroundColor:"rgba(56,189,248,0.1)",color:"#38bdf8",fontSize:"12px",fontWeight:"bold",cursor:"pointer"}}>\u062a\u0639\u062f\u064a\u0644</button>
+            <button onClick={()=>setConfirmDelete(f)} style={{flex:1,padding:"7px",borderRadius:"8px",border:"1px solid rgba(239,68,68,0.3)",backgroundColor:"rgba(239,68,68,0.1)",color:"#f87171",fontSize:"12px",fontWeight:"bold",cursor:"pointer"}}>\u062d\u0630\u0641</button>
+          </div>
+        </div>
+      ))}
+      {!showForm
+        ? <button style={C.gradBtn} onClick={()=>{setEditingPdf(null);setPdfName("");setPdfUrl("");setShowForm(true);}}><Plus size={18}/> \u0625\u0636\u0627\u0641\u0629 \u0645\u0644\u0641 PDF \u062c\u062f\u064a\u062f</button>
+        : <div style={{...C.card,border:"1px solid rgba(249,115,22,0.2)"}}>
+            <div style={{color:"#f97316",fontWeight:"bold",fontSize:"14px",marginBottom:"14px",display:"flex",alignItems:"center",gap:"6px"}}><FileText size={16}/> {editingPdf?"\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0644\u0641":"\u0645\u0644\u0641 \u062c\u062f\u064a\u062f"}</div>
+            <label style={C.label}>\u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641</label>
+            <input type="text" value={pdfName} onChange={e=>setPdfName(e.target.value)} placeholder="\u0645\u062b\u0627\u0644: \u0645\u0644\u0632\u0645\u0629 \u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u0623\u0648\u0644" style={C.input}/>
+            <div style={C.twoCol}>
+              <div><label style={C.label}>\u0627\u0644\u0645\u0627\u062f\u0629</label><select value={pdfSubject} onChange={e=>setPdfSubject(e.target.value)} style={C.select}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div><label style={C.label}>\u0627\u0644\u0645\u0631\u062d\u0644\u0629</label><select value={pdfStage} onChange={e=>setPdfStage(e.target.value)} style={C.select}>{STAGES.map(s=><option key={s}>{s}</option>)}</select></div>
+            </div>
+            <label style={C.label}>\u0631\u0627\u0628\u0637 PDF</label>
+            <input type="url" value={pdfUrl} onChange={e=>setPdfUrl(e.target.value)} placeholder="https://drive.google.com/file/..." style={C.input}/>
+            <label style={C.label}>\u0635\u0648\u0631\u0629 \u0645\u0635\u063a\u0631\u0629 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)</label>
+            <ImageUploader onUpload={url=>setPdfThumb(url)} onBase64={()=>{}} color="#f97316" label="\u0627\u062e\u062a\u0631 \u0635\u0648\u0631\u0629 \u0644\u0644\u0645\u0644\u0641"/>
+            <div style={C.saveRow}>
+              <button style={C.cancelBtn} onClick={()=>{setShowForm(false);setEditingPdf(null);}}>\u0625\u0644\u063a\u0627\u0621</button>
+              <button disabled={saving} style={{...C.saveBtn,display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",opacity:saving?0.7:1}} onClick={savePDF}>
+                {saving?<><Spinner size={15}/> \u062c\u0627\u0631\u064d...</>:<><Save size={15}/> \u062d\u0641\u0638</>}
+              </button>
+            </div>
+          </div>
+      }
+    </div>
+  );
+}
+
+function AdminWalletTab() {
+  const [payments,setPayments]=useState([]); const [zaincash,setZaincash]=useState(ZAINCASH_NUM);
+  const [editingNum,setEditingNum]=useState(false); const [newNum,setNewNum]=useState(ZAINCASH_NUM);
+  useEffect(()=>{const u=onSnapshot(collection(db,"payments"),snap=>{setPayments(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)));});return()=>u();},[]);
+  const totalReceived=payments.filter(p=>p.status==="approved").reduce((s,p)=>s+Number(p.amount||0),0);
+  const pending=payments.filter(p=>p.status==="pending");
+  const approvePayment=async(p)=>{
+    const days=p.duration||30; const expiresAt=new Date(); expiresAt.setDate(expiresAt.getDate()+days);
+    try{
+      await addDoc(collection(db,"subscriptions"),{studentPhone:p.studentPhone,studentName:p.studentName,subject:p.subject,stage:p.stage,duration:days,expiresAt:expiresAt.toISOString(),activatedAt:serverTimestamp()});
+      await addDoc(collection(db,"notifications"),{title:"\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0634\u062a\u0631\u0627\u0643\u0643!",body:"\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0634\u062a\u0631\u0627\u0643\u0643 \u0641\u064a "+p.subject+" ("+p.stage+") \u0644\u0645\u062f\u0629 "+days+" \u064a\u0648\u0645.",targetPhone:p.studentPhone,sentAt:serverTimestamp()});
+      await addDoc(collection(db,"payments"),{...p,status:"approved",approvedAt:serverTimestamp()});
+      showMsg("\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0634\u062a\u0631\u0627\u0643 "+p.subject+" \u0644\u0640 "+p.studentName);
+    }catch(e){showMsg("\u0641\u0634\u0644: "+e.message);}
+  };
+  const rejectPayment=async(p)=>{try{await addDoc(collection(db,"payments"),{...p,status:"rejected"});showMsg("\u062a\u0645 \u0631\u0641\u0636 \u0627\u0644\u062f\u0641\u0639");}catch(e){showMsg("\u0641\u0634\u0644");}};
+  return (
+    <div>
+      <div style={{background:"linear-gradient(135deg,#14532d,#15803d)",borderRadius:"16px",padding:"20px",marginBottom:"14px",textAlign:"center"}}>
+        <div style={{fontSize:"12px",color:"rgba(255,255,255,0.7)",marginBottom:"4px"}}>\u0631\u0642\u0645 \u0632\u064a\u0646 \u0643\u0627\u0634 \u0644\u0644\u0627\u0633\u062a\u0644\u0627\u0645</div>
+        {editingNum
+          ? <div style={{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center"}}>
+              <input value={newNum} onChange={e=>setNewNum(e.target.value)} style={{padding:"8px 12px",backgroundColor:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.3)",borderRadius:"8px",color:"#fff",fontSize:"16px",outline:"none",textAlign:"center",width:"170px"}}/>
+              <button onClick={()=>{setZaincash(newNum);setEditingNum(false);}} style={{backgroundColor:"#4ade80",border:"none",borderRadius:"8px",padding:"8px 14px",color:"#000",fontWeight:"bold",cursor:"pointer",fontSize:"13px"}}>\u062d\u0641\u0638</button>
+            </div>
+          : <div style={{fontSize:"22px",fontWeight:"bold",color:"#4ade80",letterSpacing:"2px",cursor:"pointer"}} onClick={()=>setEditingNum(true)}>{zaincash}</div>
+        }
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+        {[["",totalReceived.toLocaleString()+" \u062f.\u0639","\u0627\u0644\u0645\u0633\u062a\u0644\u0645"],["⏳",pending.length,"\u0645\u0639\u0644\u0642\u0629"],["",payments.filter(p=>p.status==="approved").length,"\u0645\u0624\u0643\u062f\u0629"]].map(([icon,val,label])=>(
+          <div key={label} style={C.statCard}><div style={{fontSize:"18px"}}>{icon}</div><div style={{fontSize:"14px",fontWeight:"bold",color:"#4ade80",margin:"2px 0"}}>{val}</div><div style={{fontSize:"10px",color:"#71717a"}}>{label}</div></div>
+        ))}
+      </div>
+      {pending.length>0&&(
+        <div style={{marginBottom:"12px"}}>
+          <div style={{fontSize:"13px",fontWeight:"bold",color:"#fbbf24",marginBottom:"8px"}}>\u0637\u0644\u0628\u0627\u062a \u062a\u062d\u062a\u0627\u062c \u0645\u0648\u0627\u0641\u0642\u0629 ({pending.length})</div>
+          {pending.map(p=>(
+            <div key={p.id} style={{...C.card,border:"1px solid rgba(234,179,8,0.3)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"10px"}}>
+                <div>
+                  <div style={{fontWeight:"bold",fontSize:"14px"}}>{p.studentName}</div>
+                  <div style={{fontSize:"12px",color:"#71717a"}}>{p.studentPhone}</div>
+                  <div style={{fontSize:"12px",color:"#38bdf8"}}>{p.subject} - {p.stage}</div>
+                  <div style={{fontSize:"12px",color:"#a855f7"}}>{p.durationLabel}</div>
+                  <div style={{fontSize:"13px",color:"#4ade80",fontWeight:"bold"}}>{p.amount} \u062f.\u0639</div>
+                </div>
+                {p.receiptUrl&&<img src={p.receiptUrl} alt="\u0625\u064a\u0635\u0627\u0644" style={{width:65,height:65,borderRadius:"10px",objectFit:"cover",border:"1px solid rgba(255,255,255,0.15)",cursor:"pointer"}} onClick={()=>window.open(p.receiptUrl,"_blank")}/>}
+              </div>
+              <div style={{display:"flex",gap:"8px"}}>
+                <button onClick={()=>approvePayment(p)} style={{flex:1,padding:"11px",backgroundColor:"rgba(34,197,94,0.15)",border:"1px solid rgba(34,197,94,0.3)",borderRadius:"10px",color:"#4ade80",fontSize:"13px",fontWeight:"bold",cursor:"pointer"}}>\u0642\u0628\u0648\u0644 \u0648\u062a\u0641\u0639\u064a\u0644</button>
+                <button onClick={()=>rejectPayment(p)} style={{flex:1,padding:"11px",backgroundColor:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"10px",color:"#f87171",fontSize:"13px",fontWeight:"bold",cursor:"pointer"}}>\u0631\u0641\u0636</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{fontSize:"13px",fontWeight:"bold",color:"#a1a1aa",marginBottom:"8px"}}>\u0633\u062c\u0644 \u0627\u0644\u0645\u062f\u0641\u0648\u0639\u0627\u062a</div>
+      {payments.filter(p=>p.status!=="pending").slice(0,20).map(p=>(
+        <div key={p.id} style={{...C.card,borderRight:"3px solid "+(p.status==="approved"?"#4ade80":"#f87171")}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div><div style={{fontWeight:"bold",fontSize:"13px"}}>{p.studentName}</div><div style={{fontSize:"11px",color:"#71717a"}}>{p.subject} - {p.stage}</div></div>
+            <div style={{textAlign:"left"}}>
+              <div style={{fontWeight:"bold",fontSize:"13px",color:"#4ade80"}}>{p.amount} \u062f.\u0639</div>
+              <div style={{fontSize:"11px",color:p.status==="approved"?"#4ade80":"#f87171"}}>{p.status==="approved"?"\u0645\u0642\u0628\u0648\u0644":"\u0645\u0631\u0641\u0648\u0636"}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderSubBanner(subs,subject,stage,setModal) {
+  const d=daysLeft(subs,subject,stage);
+  const sub=isSubscribed(subs,subject,stage);
+  if(sub&&d<=3) return (
+    <div style={{backgroundColor:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"10px",padding:"8px 12px",fontSize:"12px",color:"#fbbf24",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <span>\u0627\u0634\u062a\u0631\u0627\u0643 {subject} \u064a\u0646\u062a\u0647\u064a \u062e\u0644\u0627\u0644 {d} \u064a\u0648\u0645</span>
+      <button onClick={()=>setModal("wallet")} style={{backgroundColor:"#f97316",border:"none",borderRadius:"6px",padding:"4px 10px",color:"#fff",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>\u062c\u062f\u062f</button>
+    </div>
+  );
+  if(!sub) return (
+    <div style={{backgroundColor:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:"10px",padding:"8px 12px",fontSize:"12px",color:"#f87171",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <span>\u0627\u0634\u062a\u0631\u0643 \u0644\u0644\u0648\u0635\u0648\u0644 \u0644\u0645\u062d\u062a\u0648\u0649 {subject}</span>
+      <button onClick={()=>setModal("wallet")} style={{backgroundColor:"#ef4444",border:"none",borderRadius:"6px",padding:"4px 10px",color:"#fff",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>\u0627\u0634\u062a\u0631\u0643</button>
+    </div>
+  );
+  return null;
+}
+
+export default function App() {
+  const [screen,setScreen]=useState("welcome");
+  const [role,setRole]=useState("guest");
+  const [currentStudent,setCurrentStudent]=useState(null);
+  const [students,setStudents]=useState([]);
+  const [clips,setClips]=useState([]);
+  const [mySubscriptions,setMySubscriptions]=useState({});
+
+  useEffect(()=>{
+    const session=loadSession();
+    if(session&&session.student&&session.student.phone&&session.student.pass&&session.role){
+      if(session.role==="admin"||(session.student.name&&session.student.account)){
+        setCurrentStudent(session.student);setRole(session.role);setScreen("home");
+      }else{clearSession();}
+    }
+  },[]);
+
+  const [regName,setRegName]=useState(""); const [regPhone,setRegPhone]=useState("");
+  const [regAccount,setRegAccount]=useState(""); const [regPass,setRegPass]=useState("");
+  const [regErr,setRegErr]=useState("");
+  const [loginPhone,setLoginPhone]=useState(""); const [loginPass,setLoginPass]=useState("");
+  const [loginErr,setLoginErr]=useState("");
+  const [adminTab,setAdminTab]=useState("clips"); const [showClipForm,setShowClipForm]=useState(false);
+  const [editingClip,setEditingClip]=useState(null);
+  const [confirmDeleteClip,setConfirmDeleteClip]=useState(null);
+  const [clipStage,setClipStage]=useState("\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629"); const [clipGrade,setClipGrade]=useState("\u0627\u0644\u0623\u0648\u0644");
+  const [clipSubject,setClipSubject]=useState("\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a"); const [clipSemester,setClipSemester]=useState("\u0627\u0644\u0623\u0648\u0644");
+  const [clipType,setClipType]=useState("\u0645\u0639\u0644\u0645"); const [clipNum,setClipNum]=useState("01");
+  const [clipTitle,setClipTitle]=useState(""); const [clipTeacher,setClipTeacher]=useState("");
+  const [clipVideoUrl,setClipVideoUrl]=useState(""); const [savingClip,setSavingClip]=useState(false);
+  const [clipThumbUrl,setClipThumbUrl]=useState(null);
+  const [slidesTheme,setSlidesTheme]=useState("\u0623\u0632\u0631\u0642 \u0645\u062a\u062f\u0631\u062c");
+  const [notifTitle,setNotifTitle]=useState(""); const [notifBody,setNotifBody]=useState("");
+  const [sendingNotif,setSendingNotif]=useState(false);
+  const [videoIdx,setVideoIdx]=useState(0); const [playing,setPlaying]=useState(false);
+  const [saved,setSaved]=useState(false); const [showMore,setShowMore]=useState(false);
+  const [modal,setModal]=useState(null); const [showAdminLogin,setShowAdminLogin]=useState(false);
+  const tapCount=useRef(0); const tapTimer=useRef(null); const touchStartY=useRef(null);
+
+  useEffect(()=>{
+    const u1=onSnapshot(collection(db,"students"),snap=>{setStudents(snap.docs.map(d=>({id:d.id,...d.data()})));});
+    const u2=onSnapshot(collection(db,"clips"),snap=>{setClips(snap.docs.map(d=>({id:d.id,...d.data()})));});
+    return()=>{u1();u2();};
+  },[]);
+  useEffect(()=>{
+    if(!currentStudent||!currentStudent.phone) return;
+    const u=onSnapshot(collection(db,"subscriptions"),snap=>{
+      const subs={};
+      snap.docs.forEach(d=>{const s=d.data();if(s.studentPhone===currentStudent.phone)subs[subKey(s.subject,s.stage)]=s;});
+      setMySubscriptions(subs);
+    });
+    return()=>u();
+  },[currentStudent]);
+  useEffect(()=>{if(screen==="home")setPlaying(true);else setPlaying(false);},[screen]);
+  useEffect(()=>{if(screen==="home")setPlaying(true);},[videoIdx]);
+
+  const allVideos=[...clips,...SAMPLE_VIDEOS];
+  const video=allVideos[videoIdx]||SAMPLE_VIDEOS[0];
+
+  const handleLogoTap=()=>{
+    tapCount.current+=1;
+    if(tapCount.current>=6){setShowAdminLogin(true);clearTimeout(tapTimer.current);tapCount.current=0;return;}
+    clearTimeout(tapTimer.current);
+    tapTimer.current=setTimeout(()=>{tapCount.current=0;},2000);
+  };
+  const handleTouchStart=(e)=>{touchStartY.current=e.touches[0].clientY;};
+  const handleTouchEnd=(e)=>{
+    if(touchStartY.current===null) return;
+    const diff=touchStartY.current-e.changedTouches[0].clientY;
+    if(Math.abs(diff)<50){touchStartY.current=null;return;}
+    if(diff>0) setVideoIdx(i=>Math.min(i+1,allVideos.length-1));
+    else setVideoIdx(i=>Math.max(i-1,0));
+    touchStartY.current=null;
+  };
+  const handleTouchMove=(e)=>{
+    if(touchStartY.current!==null&&e.touches[0].clientY>touchStartY.current&&window.scrollY===0) e.preventDefault();
+  };
+
+  const doRegister=async()=>{
+    if(!regName.trim()) return setRegErr("\u0627\u0644\u0631\u062c\u0627\u0621 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0627\u0633\u0645");
+    if(!regPhone.trim()) return setRegErr("\u0627\u0644\u0631\u062c\u0627\u0621 \u0625\u062f\u062e\u0627\u0644 \u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644");
+    if(!regAccount.trim()) return setRegErr("\u0627\u0644\u0631\u062c\u0627\u0621 \u0625\u062f\u062e\u0627\u0644 \u0627\u0633\u0645 \u0627\u0644\u062d\u0633\u0627\u0628");
+    if(!regPass.trim()) return setRegErr("\u0627\u0644\u0631\u062c\u0627\u0621 \u0625\u062f\u062e\u0627\u0644 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631");
+    if(students.find(s=>s.phone===regPhone.trim())) return setRegErr("\u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u0645\u0633\u062c\u0644 \u0645\u0633\u0628\u0642\u0627\u064b");
+    try{
+      const s={name:regName.trim(),phone:regPhone.trim(),account:regAccount.trim(),pass:regPass.trim(),createdAt:serverTimestamp()};
+      await addDoc(collection(db,"students"),s);
+      setCurrentStudent(s);setRole("student");setScreen("home");saveSession(s,"student");
+      setRegName("");setRegPhone("");setRegAccount("");setRegPass("");setRegErr("");
+    }catch(e){setRegErr("\u0641\u0634\u0644 \u0627\u0644\u062a\u0633\u062c\u064a\u0644: "+e.message);}
+  };
+
+  const doLogin=()=>{
+    if(!loginPhone.trim()||!loginPass.trim()) return setLoginErr("\u0623\u062f\u062e\u0644 \u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u0648\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631");
+    const found=students.find(s=>s.phone===loginPhone.trim()&&s.pass===loginPass.trim());
+    if(found){setCurrentStudent(found);setRole("student");setScreen("home");saveSession(found,"student");setLoginPhone("");setLoginPass("");setLoginErr("");}
+    else{const ex=students.find(s=>s.phone===loginPhone.trim());setLoginErr(ex?"\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629":"\u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u063a\u064a\u0631 \u0645\u0633\u062c\u0644");}
+  };
+
+  const openEditClip=(clip)=>{
+    setEditingClip(clip);setClipTitle(clip.title||"");setClipTeacher(clip.teacher||"");
+    setClipStage(clip.stage||"\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629");setClipGrade(clip.grade||"\u0627\u0644\u0623\u0648\u0644");
+    setClipSubject(clip.subject||"\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a");setClipSemester(clip.semester||"\u0627\u0644\u0623\u0648\u0644");
+    setClipType(clip.type||"\u0645\u0639\u0644\u0645");setClipNum(clip.num||"01");
+    setClipVideoUrl(clip.videoUrl||"");setClipThumbUrl(clip.thumbUrl||null);
+    setShowClipForm(true);
+  };
+  const resetClipForm=()=>{
+    setEditingClip(null);setClipTitle("");setClipTeacher("");setClipVideoUrl("");
+    setClipThumbUrl(null);setClipNum("01");setClipStage("\u0627\u0644\u0627\u0628\u062a\u062f\u0627\u0626\u064a\u0629");setClipGrade("\u0627\u0644\u0623\u0648\u0644");
+    setClipSubject("\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a");setClipSemester("\u0627\u0644\u0623\u0648\u0644");setClipType("\u0645\u0639\u0644\u0645");setShowClipForm(false);
+  };
+  const saveClip=async()=>{
+    if(!clipTitle.trim()) return showMsg("\u0623\u062f\u062e\u0644 \u0639\u0646\u0648\u0627\u0646 \u0627\u0644\u0645\u0642\u0637\u0639");
+    setSavingClip(true);
+    try{
+      const data={title:clipTitle,stage:clipStage,grade:clipGrade,subject:clipSubject,semester:clipSemester,type:clipType,num:clipNum,teacher:clipTeacher,videoUrl:clipVideoUrl,thumbUrl:clipThumbUrl,bg:"linear-gradient(180deg,#0f172a,#1e1b4b)"};
+      if(editingClip&&editingClip.id){await updateDoc(doc(db,"clips",editingClip.id),data);showMsg("\u062a\u0645 \u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0642\u0637\u0639!");}
+      else{await addDoc(collection(db,"clips"),{...data,createdAt:serverTimestamp()});showMsg("\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0642\u0637\u0639!");}
+      resetClipForm();
+    }catch(e){showMsg("\u0641\u0634\u0644 \u0627\u0644\u062d\u0641\u0638: "+e.message);}
+    setSavingClip(false);
+  };
+  const doDeleteClip=async(clip)=>{
+    try{if(clip.id)await deleteDoc(doc(db,"clips",clip.id));showMsg("\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u0645\u0642\u0637\u0639");}
+    catch(e){showMsg("\u0641\u0634\u0644 \u0627\u0644\u062d\u0630\u0641: "+e.message);}
+    setConfirmDeleteClip(null);
+  };
+  const sendNotif=async()=>{
+    if(!notifTitle.trim()||!notifBody.trim()) return showMsg("\u0623\u062f\u062e\u0644 \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u0648\u0627\u0644\u0646\u0635");
+    setSendingNotif(true);
+    try{await addDoc(collection(db,"notifications"),{title:notifTitle,body:notifBody,sentAt:serverTimestamp(),sentTo:students.length});showMsg("\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0625\u0634\u0639\u0627\u0631 \u0644\u0640 "+students.length+" \u0637\u0627\u0644\u0628!");setNotifTitle("");setNotifBody("");}
+    catch(e){showMsg("\u0641\u0634\u0644: "+e.message);}
+    setSendingNotif(false);
+  };
+  const applyTemplate=(t)=>{
+    const T={
+      expire:["\u062a\u0646\u0628\u064a\u0647 \u0627\u0646\u062a\u0647\u0627\u0621 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643","\u0639\u0632\u064a\u0632\u064a \u0627\u0644\u0637\u0627\u0644\u0628\u060c \u064a\u0631\u062c\u0649 \u062a\u062c\u062f\u064a\u062f \u0627\u0634\u062a\u0631\u0627\u0643\u0643."],
+      new_video:["\u062a\u0645 \u0631\u0641\u0639 \u062f\u0631\u0633 \u062c\u062f\u064a\u062f!","\u0642\u0627\u0645 \u0627\u0644\u0623\u0633\u062a\u0627\u0630 \u0628\u0631\u0641\u0639 \u0645\u0642\u0637\u0639 \u062a\u0639\u0644\u064a\u0645\u064a \u062c\u062f\u064a\u062f \u0627\u0644\u0622\u0646."],
+      remind:["\u062d\u0627\u0646 \u0648\u0642\u062a \u0627\u0644\u0645\u0630\u0627\u0643\u0631\u0629","\u0627\u062f\u062e\u0644 \u0648\u0631\u0627\u062c\u0639 \u062f\u0631\u0648\u0633\u0643 \u0631\u0628\u0639 \u0633\u0627\u0639\u0629."],
+      offer:["\u062e\u0635\u0645 50% \u0644\u0641\u062a\u0631\u0629 \u0645\u062d\u062f\u0648\u062f\u0629","\u0627\u0634\u062a\u0631\u0643 \u0627\u0644\u0622\u0646 \u0628\u0646\u0635\u0641 \u0627\u0644\u0633\u0639\u0631."]
+    };
+    setNotifTitle(T[t][0]);setNotifBody(T[t][1]);
+  };
+
+  const closeModal=()=>setModal(null);
+  const showNav=screen!=="welcome"&&screen!=="login"&&screen!=="register";
+  const isSubbed=Object.values(mySubscriptions).some(s=>new Date(s.expiresAt)>new Date());
+
+  return (
+    <div style={C.app}>
+      <Toast/>
+
+      {showNav&&(
+        <div style={C.header}>
+          <div style={C.logoRow} onClick={handleLogoTap}>
+            <img src={LOGO} alt="logo" style={{width:28,height:28}}/>
+            <div>
+              <span style={{fontSize:"20px",fontWeight:"900",color:"#38bdf8"}}>EduTok</span>
+              <span style={{fontSize:"10px",color:"#71717a",display:"block"}}>\u0627\u0644\u062a\u0639\u0644\u0645 \u0628\u0637\u0631\u064a\u0642\u0629 \u0645\u0645\u062a\u0639\u0629</span>
+            </div>
+          </div>
+          {role==="admin"&&(
+            <button style={C.adminBtn} onClick={()=>setScreen("admin")}><Settings size={13}/> \u0625\u062f\u0627\u0631\u0629</button>
+          )}
+        </div>
+      )}
+
+      {screen==="welcome"&&(
+        <div style={C.welcomeWrap}>
+          <img src={LOGO} alt="EduTok" style={{width:120,height:120,marginBottom:16}}/>
+          <h1 style={C.welcomeTitle}>EduTok</h1>
+          <p style={{color:"#a1a1aa",fontSize:"14px",marginBottom:"32px"}}>\u0627\u0644\u062a\u0639\u0644\u0645 \u0628\u0637\u0631\u064a\u0642\u0629 \u0645\u0645\u062a\u0639\u0629</p>
+          <button style={C.primaryBtn} onClick={()=>setScreen("register")}>\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628 \u062c\u062f\u064a\u062f</button>
+          <button style={C.secondaryBtn} onClick={()=>{setLoginPhone("");setLoginPass("");setLoginErr("");setScreen("login");}}>\u0644\u062f\u064a \u062d\u0633\u0627\u0628 — \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644</button>
+        </div>
+      )}
+
+      {screen==="register"&&(
+        <div style={{padding:"32px 24px"}}>
+          <div style={{textAlign:"center",marginBottom:"24px"}}>
+            <h2 style={{fontSize:"22px",fontWeight:"bold",margin:"8px 0 4px"}}>\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628 \u062c\u062f\u064a\u062f</h2>
+          </div>
+          <label style={C.label}>\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644</label>
+          <input type="text" placeholder="\u0645\u062b\u0627\u0644: \u0623\u062d\u0645\u062f \u0645\u062d\u0645\u062f" value={regName} onChange={e=>{setRegName(e.target.value);setRegErr("");}} style={C.input}/>
+          <label style={C.label}>\u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644</label>
+          <input type="text" placeholder="07XX XXX XXXX" value={regPhone} onChange={e=>{setRegPhone(e.target.value);setRegErr("");}} style={C.input}/>
+          <label style={C.label}>\u0627\u0633\u0645 \u0627\u0644\u062d\u0633\u0627\u0628</label>
+          <input type="text" placeholder="\u0645\u062b\u0627\u0644: ahmed2025" value={regAccount} onChange={e=>{setRegAccount(e.target.value);setRegErr("");}} style={C.input}/>
+          <label style={C.label}>\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>
+          <input type="password" placeholder="\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631" value={regPass} onChange={e=>{setRegPass(e.target.value);setRegErr("");}} style={C.input}/>
+          <ErrBox msg={regErr}/>
+          <button style={C.primaryBtn} onClick={doRegister}>\u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u062d\u0633\u0627\u0628 \u0648\u0627\u0644\u062f\u062e\u0648\u0644</button>
+          <div style={{textAlign:"center",marginTop:"10px"}}>
+            <span style={{color:"#a1a1aa",fontSize:"13px"}}>\u0644\u062f\u064a \u062d\u0633\u0627\u0628\u061f </span>
+            <span style={{color:"#38bdf8",cursor:"pointer",fontWeight:"bold",fontSize:"13px"}} onClick={()=>{setLoginPhone("");setLoginPass("");setLoginErr("");setScreen("login");}}>\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644</span>
+          </div>
+          <div style={{textAlign:"center",marginTop:"8px"}}>
+            <span style={{color:"#52525b",cursor:"pointer",fontSize:"12px"}} onClick={()=>setScreen("welcome")}>\u0631\u062c\u0648\u0639</span>
+          </div>
+        </div>
+      )}
+
+      {screen==="login"&&(
+        <div style={{padding:"40px 24px"}}>
+          <div style={{textAlign:"center",marginBottom:"24px"}}>
+            <h2 style={{fontSize:"24px",fontWeight:"bold",margin:"8px 0"}}>\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644</h2>
+          </div>
+          <div style={{...C.infoBanner,marginBottom:"16px"}}>\u0644\u0644\u0637\u0644\u0627\u0628 \u0627\u0644\u0645\u0633\u062c\u0644\u064a\u0646 \u0641\u0642\u0637</div>
+          <label style={C.label}>\u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644</label>
+          <input type="text" placeholder="07XX XXX XXXX" value={loginPhone} onChange={e=>{setLoginPhone(e.target.value);setLoginErr("");}} style={C.input}/>
+          <label style={C.label}>\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>
+          <input type="password" placeholder="\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631" value={loginPass} onChange={e=>{setLoginPass(e.target.value);setLoginErr("");}} style={C.input} onKeyDown={e=>e.key==="Enter"&&doLogin()}/>
+          <ErrBox msg={loginErr}/>
+          <button style={C.primaryBtn} onClick={doLogin}>\u062f\u062e\u0648\u0644</button>
+          <div style={{textAlign:"center",marginTop:"10px"}}>
+            <span style={{color:"#a1a1aa",fontSize:"13px"}}>\u0644\u064a\u0633 \u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628\u061f </span>
+            <span style={{color:"#38bdf8",cursor:"pointer",fontWeight:"bold",fontSize:"13px"}} onClick={()=>{setRegName("");setRegPhone("");setRegAccount("");setRegPass("");setRegErr("");setScreen("register");}}>\u0633\u062c\u0644 \u0627\u0644\u0622\u0646</span>
+          </div>
+          <div style={{textAlign:"center",marginTop:"8px"}}>
+            <span style={{color:"#52525b",cursor:"pointer",fontSize:"12px"}} onClick={()=>setScreen("welcome")}>\u0631\u062c\u0648\u0639</span>
+          </div>
+        </div>
+      )}
+
+      {screen==="home"&&(
+        <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} style={{userSelect:"none",overscrollBehavior:"none"}}>
+          <div style={{...C.videoWrap,background:video.bg||"linear-gradient(180deg,#0f172a,#1e1b4b)"}}>
+            <div style={{position:"absolute",top:0,bottom:0,left:"80px",right:0,zIndex:4,cursor:"pointer"}} onClick={()=>setPlaying(p=>!p)}/>
+            {videoIdx>0&&<div style={{position:"absolute",top:"10px",left:"50%",transform:"translateX(-50%)",color:"rgba(255,255,255,0.4)",zIndex:6}}><ChevronUp size={22}/></div>}
+            {videoIdx<allVideos.length-1&&<div style={{position:"absolute",bottom:"80px",left:"50%",transform:"translateX(-50%)",color:"rgba(255,255,255,0.4)",zIndex:6}}><ChevronDown size={22}/></div>}
+            <VideoPlayer video={video} playing={playing} onClick={()=>setPlaying(p=>!p)}/>
+            <div style={C.sidebar}>
+              {[
+                [<Bookmark size={18} color={saved?"#22d3ee":"#fff"} fill={saved?"#22d3ee":"none"}/>,saved?"\u0645\u062d\u0641\u0648\u0638":"\u062d\u0641\u0638",()=>setSaved(s=>!s),saved],
+                [<Share2 size={18} color="#fff"/>,"\u0645\u0634\u0627\u0631\u0643\u0629",()=>setModal("share"),false],
+                [<Bot size={18} color="#fff"/>,"\u0645\u0633\u0627\u0639\u062f",()=>{setModal("ai");setPlaying(false);},false],
+                [<MessageCircle size={18} color="#fff"/>,"\u0646\u0642\u0627\u0634",()=>setModal("chat"),false],
+                [<MoreHorizontal size={18} color="#fff"/>,"\u0627\u0644\u0645\u0632\u064a\u062f",()=>setShowMore(m=>!m),false]
+              ].map(([icon,label,fn,active],i)=>(
+                <button key={i} style={C.sideBtn(active)} onClick={fn}>{icon}<span style={C.sideTxt(active)}>{label}</span></button>
+              ))}
+            </div>
+            <div style={{position:"absolute",top:"12px",right:"16px",display:"flex",flexDirection:"column",gap:"4px",zIndex:6}}>
+              {allVideos.slice(0,8).map((_,i)=>(
+                <div key={i} style={{width:"3px",height:i===videoIdx?"20px":"8px",borderRadius:"3px",backgroundColor:i===videoIdx?"#38bdf8":"rgba(255,255,255,0.25)",transition:"height 0.2s"}}/>
+              ))}
+            </div>
+            {showMore&&(
+              <div style={C.moreMenu}>
+                {[[<FileText size={22} color="#fff"/>,"PDF","pdf"],[<Camera size={22} color="#fff"/>,"\u062d\u0644 \u0630\u0643\u064a","solve"],[<Search size={22} color="#fff"/>,"\u0627\u0644\u0628\u062d\u062b","search"],[<DollarSign size={22} color="#fff"/>,"\u0632\u064a\u0646 \u0643\u0627\u0634","wallet"]].map(([icon,label,key])=>(
+                  <button key={key} style={C.moreItem} onClick={()=>{setModal(key);setShowMore(false);}}>{icon}<span style={{fontSize:"11px",marginTop:"4px"}}>{label}</span></button>
+                ))}
+              </div>
+            )}
+          </div>
+       
