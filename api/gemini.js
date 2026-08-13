@@ -17,7 +17,9 @@
 // ────────────────────────────────────────────────────────
 
 // اسم النموذج — يمكن تغييره لاحقاً بسهولة من هنا فقط لو احتجت نموذج مختلف
-const GEMINI_MODEL = "gemini-2.0-flash";
+// ملاحظة: "gemini-2.0-flash" تم إيقافه من Google (رسالة "model is no longer available")
+// لذلك تم التحديث إلى "gemini-2.5-flash" — النموذج السريع الحالي المدعوم رسمياً
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // نسمح بحجم أكبر قليلاً للجسم (body) عشان الصور المرفوعة (OCR) ما تنرفض بسبب الحجم
