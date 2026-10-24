@@ -45,6 +45,17 @@ h1{font-family:var(--f-title);font-size:clamp(28px,5vw,40px);margin:0;line-heigh
 .err{position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:24px;z-index:4;background:#05090c}
 </style>
 
+<style>
+html.embed,html.embed body{margin:0;background:#05090c;height:100%;overflow:hidden}
+html.embed .wrap{display:block;max-width:none;padding:0;margin:0}
+html.embed header,html.embed .list,html.embed .hint{display:none!important}
+html.embed .player{position:static;border:0;border-radius:0;background:#05090c;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+html.embed .screen{width:min(100vw,calc((100dvh - 56px) * 9 / 16));max-width:100vw;flex:0 0 auto}
+html.embed .controls{width:min(100vw,calc((100dvh - 56px) * 9 / 16));border-top:0;padding:8px 10px;background:#05090c;color:#e6ecea}
+html.embed .controls .btn{color:#e6ecea;border-color:#2a3a3e}
+html.embed .bar .track{background:#2a3a3e}
+</style>
+<script>(function(){try{if(location.hash.length>1||window.self!==window.top)document.documentElement.classList.add('embed');}catch(e){document.documentElement.classList.add('embed');}})();</script>
 <div class="wrap" dir="rtl">
   <header>
     <h1>الفصل الرابع: تفاعلات التأكسد والاختزال والكيمياء الكهربائية</h1>
