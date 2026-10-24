@@ -641,6 +641,9 @@ let first=PROBS[0]&&PROBS[0].id;try{const l=localStorage.getItem('ch1-last');if(
 const h=location.hash.slice(1);if(PROBS.some(p=>p.id===h))first=h;
 if(first)select(first,false);
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(PROBS.some(p=>p.id===h)){pause();select(h,false);}});
+if(document.documentElement.classList.contains('embed')){try{const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.6){if(!playing)play();}else if(playing)pause();});},{threshold:[0,.6,1]});io.observe(document.getElementById('screen'));}catch(e){setTimeout(play,600);}}
+window.addEventListener('message',e=>{const d=e.data;if(d==='play'||(d&&d.type==='play'))play();else if(d==='pause'||(d&&d.type==='pause'))pause();});
+
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>Promise.all(['700 40px Amiri','600 20px "Noto Naskh Arabic"','20px "STIX Two Text"','500 20px "IBM Plex Mono"'].map(f=>document.fonts.load(f).catch(()=>{})))).then(()=>{if(!playing)render(3);});
 })();
 </script>
