@@ -1,4 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>حلول الفصل الأول ثلاثية الأبعاد</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,19 +42,22 @@ h1{font-family:var(--f-title);font-size:clamp(28px,5vw,40px);margin:0;line-heigh
 .bar{flex:1 1 120px;min-width:0;height:26px;position:relative;cursor:pointer;touch-action:none}
 .bar .track{position:absolute;inset:11px 0;background:var(--line);border-radius:4px}
 .bar .fill{position:absolute;top:11px;bottom:11px;right:0;background:var(--accent);border-radius:4px}
-/* وضع التضمين داخل تطبيق EduTok: بدون عنوان ولا قائمة ولا أزرار، المشهد فقط (التحكم من التطبيق) */
-html.embed,html.embed body{background:#04121a;margin:0;padding:0;overflow:hidden;height:100%}
-html.embed .wrap{display:block;max-width:none;padding:0;margin:0}
-html.embed header,html.embed .list,html.embed .controls,html.embed .cover{display:none!important}
-html.embed .player{border:0;border-radius:0;position:static;background:#04121a;height:100vh;height:100dvh}
-html.embed .screen{aspect-ratio:auto;height:100%;width:100%}
-html.embed .screen canvas{object-fit:contain}
-.eprog{display:none}
-html.embed .eprog{display:block;position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.15);z-index:5}
-html.embed .eprog i{position:absolute;top:0;bottom:0;right:0;width:0;background:#5fcab9}
+.hint{color:var(--muted);font-size:13.5px;padding:0 12px 12px;margin:0}
+.screen{touch-action:none}
 .err{position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:24px;z-index:4;background:#04121a}
 </style>
 
+<style>
+html.embed,html.embed body{margin:0;background:#05090c;height:100%;overflow:hidden}
+html.embed .wrap{display:block;max-width:none;padding:0;margin:0}
+html.embed header,html.embed .list,html.embed .hint{display:none!important}
+html.embed .player{position:static;border:0;border-radius:0;background:#05090c;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+html.embed .screen{width:min(100vw,calc((100dvh - 56px) * 9 / 16));max-width:100vw;flex:0 0 auto}
+html.embed .controls{width:min(100vw,calc((100dvh - 56px) * 9 / 16));border-top:0;padding:8px 10px;background:#05090c;color:#e6ecea}
+html.embed .controls .btn{color:#e6ecea;border-color:#2a3a3e}
+html.embed .bar .track{background:#2a3a3e}
+</style>
+<script>(function(){try{if(location.hash.length>1||window.self!==window.top)document.documentElement.classList.add('embed');}catch(e){document.documentElement.classList.add('embed');}})();</script>
 <div class="wrap" dir="rtl">
   <header>
     <h1>حلول الفصل الأول: الثرموداينمك</h1>
@@ -61,7 +68,6 @@ html.embed .eprog i{position:absolute;top:0;bottom:0;right:0;width:0;background:
     <div class="screen" id="screen">
       <canvas id="gl" aria-hidden="true"></canvas>
       <canvas id="ov" width="720" height="1280" aria-label="حل المسألة"></canvas>
-      <div class="eprog"><i id="eprogi"></i></div>
       <button class="cover" id="cover" aria-label="تشغيل"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#fff"/></svg></span></button>
     </div>
     <div class="controls">
@@ -69,14 +75,376 @@ html.embed .eprog i{position:absolute;top:0;bottom:0;right:0;width:0;background:
       <div class="bar" id="bar" tabindex="0" role="slider" aria-label="موضع التشغيل" aria-valuemin="0" aria-valuenow="0"><div class="track"></div><div class="fill" id="fill" style="width:0"></div></div>
       <span class="time" id="time">0:00</span>
     </div>
+    <p class="hint">ضغطة خفيفة للتشغيل والإيقاف، وسحب لتدوير المشهد.</p>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="sol-ch1-problems.js"></script>
+<script>
+// Solution scripts for chapter 1 (Thermodynamics) — computational examples, exercises and end-of-chapter questions.
+// math markup: _{sub} ^{sup}
+(function(){
+const P=[];const add=o=>P.push(o);
+const IRON='#7d848c',MG='#c9ccd1',AG='#c7ccd2',AU='#d8b13c';
+const COL={C:'#4a4f55',H:'#f2f5f7',O:'#ff5a4a',N:'#5c8bff',S:'#f2d24d',Al:'#b8c2cc',Fe:'#a0522d',Cl:'#7bd66b',P:'#ff9f40',X:'#e8b64c'};
+const qcFormula='q = c × m × ΔT';
+const hessF=['ΔH_{r}^{°} = Σ n ΔH_{f}^{°}(products) − Σ n ΔH_{f}^{°}(reactants)'];
+const sF=['ΔS_{r}^{°} = Σ n S^{°}(products) − Σ n S^{°}(reactants)'];
+const gF=['ΔG = ΔH − TΔS'];
+
+// ======================= الأمثلة =======================
+add({id:'E1-1',label:'مثال 1-1',page:13,prop:'block',propOpt:{color:IRON,name:'حديد'},
+ q:'ما مقدار الحرارة اللازمة لتسخين قطعة من الحديد كتلتها 870 g من 5 °C الى 95 °C ؟ علمًا أن الحرارة النوعية للحديد 0.45 J/g.°C',
+ givens:[['m','870 g','الكتلة'],['T_{i}','5 °C','الابتدائية'],['T_{f}','95 °C','النهائية'],['c','0.45 J/g.°C','الحرارة النوعية']],find:'q = ? kJ',
+ formula:qcFormula,
+ steps:[{t:'نجد التغير في درجة الحرارة',m:['ΔT = T_{f} − T_{i}','ΔT = 95 − 5 = 90 °C']},
+  {t:'نعوّض في القانون',m:['q = 0.45 × 870 × 90','q = 35235 J']},
+  {t:'نحوّل من J إلى kJ بالقسمة على 1000',m:['q = 35235 ÷ 1000','q = 35.2 kJ']}],
+ answer:['q = 35.2 kJ'],tip:'ΔT دائمًا = النهائية − الابتدائية، والوحدات تُختصر: J/g.°C × g × °C = J'});
+
+add({id:'E1-2',label:'مثال 1-2',page:18,prop:'calorimeter',
+ q:'باستخدام المسعر، وضعت 3 g من الكلوكوز C₆H₁₂O₆ (الكتلة المولية 180 g/mol) في وعاء العينة ثم ملئ بغاز الأوكسجين، ووضع الوعاء داخل وعاء معزول فيه 1200 g من الماء (c = 4.2 J/g.°C) وكانت درجة الحرارة 21.0 °C. بعد الاحتراق ارتفعت إلى 25.5 °C. احسب الحرارة المتحررة بوحدة kJ/mol نتيجة احتراق 1 mol من الكلوكوز، على فرض أن السعة الحرارية للمسعر مهملة.',
+ givens:[['m_{glucose}','3 g'],['M','180 g/mol'],['m_{water}','1200 g'],['c','4.2 J/g.°C'],['T_{i} → T_{f}','21.0 → 25.5 °C']],find:'ΔH = ? kJ/mol',
+ formula:['q = c × m × ΔT','n = m ÷ M'],formulaNote:'الحرارة التي امتصها الماء = الحرارة التي حررها التفاعل',
+ steps:[{t:'التغير في درجة حرارة الماء',m:['ΔT = 25.5 − 21.0 = 4.5 °C']},
+  {t:'الحرارة التي امتصها الماء',m:['q = 4.2 × 1200 × 4.5','q = 22680 J']},
+  {t:'الحرارة متحررة من التفاعل فتكون سالبة',m:['q_{rxn} = −22680 J']},
+  {t:'عدد مولات الكلوكوز',m:['n = 3 ÷ 180','n ≈ 0.017 mol']},
+  {t:'الحرارة لكل مول، ثم نحوّل إلى kJ',m:['ΔH = −22680 ÷ 0.017','ΔH = −1334118 J/mol','ΔH ≈ −1334 kJ/mol']}],
+ answer:['ΔH = −1334 kJ/mol'],answerNote:'الإشارة السالبة: الاحتراق باعث للحرارة',tip:'نستخدم كتلة الماء في q = c m ΔT، لا كتلة الكلوكوز'});
+
+add({id:'E1-3',label:'مثال 1-3',page:24,prop:'reaction',propOpt:{left:[[COL.C,6],[COL.H,6]],right:[[COL.X,6]]},
+ q:'اذا علمت أن انثالبي التكوين القياسية للبنزين C₆H₆ تساوي ΔH°f = 49 kJ/mol، اكتب المعادلة الكيميائية الحرارية للتفاعل بحيث تكون ΔH°r مساوية الى ΔH°f',
+ givens:[['ΔH_{f}^{°}(C_{6}H_{6})','49 kJ/mol']],find:'المعادلة الحرارية',
+ formula:['ΔH_{r}^{°} = ΔH_{f}^{°}'],formulaNote:'عندما يتكون مول واحد من المركب من عناصره بأثبت صورها',
+ steps:[{t:'نكتب العناصر بأثبت صورها: الكربون غرافيت والهيدروجين غاز',m:['C_{(graphite)} ,  H_{2(g)}']},
+  {t:'نوازن لتكوين مول واحد فقط من البنزين',m:['6C_{(graphite)} + 3H_{2(g)} → C_{6}H_{6(l)}']},
+  {t:'نضيف قيمة الانثالبي',m:['ΔH_{r}^{°} = ΔH_{f}^{°} = 49 kJ/mol']}],
+ answer:['6C_{(graphite)} + 3H_{2(g)} → C_{6}H_{6(l)}','ΔH_{r}^{°} = 49 kJ/mol'],tip:'شرطان: مول واحد من الناتج، والعناصر بأثبت صورها في الظروف القياسية'});
+
+add({id:'E1-4',label:'مثال 1-4',page:24,prop:'reaction',propOpt:{left:[[COL.C,1],[COL.O,2]],right:[[COL.X,3]]},
+ q:'أي من التفاعلات التالية تساوي قيمة انثالبي التفاعل القياسية ΔH°r لها الى قيمة انثالبي التكوين القياسية ΔH°f للمركبات المتكونة: (1) 4Fe + 3O₂ → 2Fe₂O₃ ، (2) C(graphite) + O₂ → CO₂ ، (3) CO + ½O₂ → CO₂',
+ givens:[['(1)','4Fe + 3O_{2} → 2Fe_{2}O_{3}'],['(2)','C_{(graphite)} + O_{2} → CO_{2}'],['(3)','CO + ½O_{2} → CO_{2}']],find:'ΔH_{r}^{°} = ΔH_{f}^{°} ?',
+ formula:['ΔH_{r}^{°} = ΔH_{f}^{°}'],formulaNote:'إذا تكوّن مول واحد من المركب من عناصره بأثبت صورها',
+ steps:[{t:'التفاعل (1): الناتج 2 mol من Fe₂O₃',m:['2 mol ≠ 1 mol  ✗']},
+  {t:'التفاعل (2): مول واحد من CO₂ من عناصره',m:['C + O_{2} → 1 mol CO_{2}  ✓']},
+  {t:'التفاعل (3): المتفاعل CO مركب وليس عنصرًا',m:['CO مركب  ✗']}],
+ answer:['التفاعل (2)'],tip:'المتفاعلات يجب أن تكون عناصر، والناتج مول واحد فقط'});
+
+add({id:'E1-5',label:'مثال 1-5',page:26,prop:'reaction',propOpt:{left:[[COL.X,3],[COL.O,3]],right:[[COL.C,2],[COL.H,3]]},
+ q:'اكتب المعادلة الكيميائية الحرارية لحرق الكحول الأثيلي السائل C₂H₅OH اذا علمت أن ΔH°c(C₂H₅OH) = −1367 kJ/mol',
+ givens:[['ΔH_{c}^{°}(C_{2}H_{5}OH)','−1367 kJ/mol']],find:'معادلة الاحتراق',
+ formula:['وقود + O_{2} → CO_{2} + H_{2}O'],formulaNote:'يحرق مول واحد من المادة مع كمية وافية من الأوكسجين',
+ steps:[{t:'نكتب مول واحد من الكحول مع الأوكسجين، والنواتج CO₂ و H₂O',m:['C_{2}H_{5}OH_{(l)} + O_{2(g)} → CO_{2(g)} + H_{2}O_{(l)}']},
+  {t:'نوازن: 2 كربون ← 2CO₂ ، 6 هيدروجين ← 3H₂O',m:['C_{2}H_{5}OH + 3O_{2} → 2CO_{2} + 3H_{2}O']},
+  {t:'نضيف حرارة الاحتراق',m:['ΔH_{c}^{°} = −1367 kJ/mol']}],
+ answer:['C_{2}H_{5}OH_{(l)} + 3O_{2(g)} → 2CO_{2(g)} + 3H_{2}O_{(l)}','ΔH_{c}^{°} = −1367 kJ/mol'],tip:'تحقق من الأوكسجين: 4 + 3 = 7 في النواتج، و 1 + 6 = 7 في المتفاعلات'});
+
+add({id:'E1-6',label:'مثال 1-6',page:27,prop:'phase',propOpt:{kind:'vap',reverse:true,color:'#bfe3ff'},
+ q:'اذا علمت أن انثالبي التبخر للأمونيا تساوي 23 kJ/mol، احسب انثالبي التكثيف للأمونيا.',
+ givens:[['ΔH_{vap}','23 kJ/mol']],find:'ΔH_{cond} = ?',
+ formula:['ΔH_{cond} = − ΔH_{vap}'],formulaNote:'التكثيف عكس التبخر، فنعكس الإشارة',
+ steps:[{t:'معادلة التبخر',m:['NH_{3(l)} → NH_{3(g)}   ΔH_{vap} = 23 kJ/mol']},
+  {t:'التكثيف عكس التبخر',m:['NH_{3(g)} → NH_{3(l)}','ΔH_{cond} = −23 kJ/mol']}],
+ answer:['ΔH_{cond} = −23 kJ/mol'],answerNote:'التكثيف باعث للحرارة',tip:'عكس أي عملية يعكس إشارة ΔH مع بقاء القيمة نفسها'});
+
+add({id:'E1-7',label:'مثال 1-7',page:29,prop:'hess',propOpt:{levels:[0,-1.4,1.2,-.4]},
+ q:'احسب انثالبي التكوين القياسية للمركب CS₂(l) من عناصره الأساسية باثبت صورها: C(graphite) + 2S(rhombic) → CS₂(l)، اذا اعطيت: (1) C + O₂ → CO₂ ΔH = −394 kJ ، (2) S + O₂ → SO₂ ΔH = −296 kJ ، (3) CS₂ + 3O₂ → CO₂ + 2SO₂ ΔH = −1072 kJ',
+ givens:[['(1)','C + O_{2} → CO_{2}   −394 kJ'],['(2)','S + O_{2} → SO_{2}   −296 kJ'],['(3)','CS_{2} + 3O_{2} → CO_{2} + 2SO_{2}   −1072 kJ']],find:'ΔH_{f}^{°}(CS_{2}) = ?',
+ formula:['قانون هيس: ΔH الكلي = مجموع ΔH للخطوات'],formulaNote:'نرتب المعادلات حتى يكون مجموعها هو التفاعل المطلوب',
+ steps:[{t:'CS₂ يجب أن يكون في النواتج، فنعكس المعادلة (3)',m:['CO_{2} + 2SO_{2} → CS_{2} + 3O_{2}','ΔH = +1072 kJ']},
+  {t:'نحتاج 2S، فنضرب المعادلة (2) في 2',m:['2S + 2O_{2} → 2SO_{2}','ΔH = 2 × (−296) = −592 kJ']},
+  {t:'نجمع (1) مع المعادلتين الجديدتين',m:['ΔH = −394 + 1072 + (−592)','ΔH_{f}^{°}(CS_{2}) = 86 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(CS_{2}) = +86 kJ/mol'],tip:'عند عكس معادلة نعكس الإشارة، وعند ضربها في عدد نضرب ΔH بنفس العدد'});
+
+add({id:'E1-8',label:'مثال 1-8',page:31,prop:'bars',propOpt:{values:[[-822,'#ee8066'],[-1670,'#5fcab9']]},propLabels:[],
+ q:'يجري التفاعل الذي يتضمن الألمنيوم وأوكسيد الحديد (III) كالآتي: 2Al + Fe₂O₃ → Al₂O₃ + 2Fe ، احسب انثالبي التفاعل القياسية اذا علمت أن ΔH°f(Al₂O₃) = −1670 kJ/mol و ΔH°f(Fe₂O₃) = −822 kJ/mol',
+ givens:[['ΔH_{f}^{°}(Al_{2}O_{3})','−1670 kJ/mol'],['ΔH_{f}^{°}(Fe_{2}O_{3})','−822 kJ/mol'],['ΔH_{f}^{°}(Al, Fe)','0','عناصر']],find:'ΔH_{r}^{°} = ?',
+ formula:hessF,
+ steps:[{t:'نعوّض: العناصر بأثبت صورها قيمتها صفر',m:['ΔH = [ΔH_{f}(Al_{2}O_{3}) + 2(0)] − [2(0) + ΔH_{f}(Fe_{2}O_{3})]']},
+  {t:'نحسب',m:['ΔH = [−1670] − [−822]','ΔH = −848 kJ']}],
+ answer:['ΔH_{r}^{°} = −848 kJ'],answerNote:'تفاعل باعث للحرارة بشدة (تفاعل الثرميت)',tip:'ΔH_f لأي عنصر بأثبت صوره = صفر'});
+
+add({id:'E1-10',label:'مثال 1-10',page:38,prop:'entropy',propOpt:{dir:-1,color:'#ffb36b'},
+ q:'احسب التغير في انتروبي التفاعل القياسية ΔS°r للتفاعل التالي عند الظروف القياسية 25 °C وضغط 1 atm: 2CO + O₂ → 2CO₂ اذا علمت أن S°(CO) = 198 ، S°(CO₂) = 214 ، S°(O₂) = 205 J/K.mol',
+ givens:[['S^{°}(CO)','198 J/K.mol'],['S^{°}(CO_{2})','214 J/K.mol'],['S^{°}(O_{2})','205 J/K.mol']],find:'ΔS_{r}^{°} = ?',
+ formula:sF,
+ steps:[{t:'نعوّض حسب المعاملات',m:['ΔS = [2 S^{°}(CO_{2})] − [2 S^{°}(CO) + S^{°}(O_{2})]','ΔS = [2 × 214] − [2 × 198 + 205]']},
+  {t:'نحسب',m:['ΔS = 428 − 601','ΔS = −173 J/K.mol']}],
+ answer:['ΔS_{r}^{°} = −173 J/K.mol'],answerNote:'3 مولات غاز أصبحت 2، فقلّت العشوائية',tip:'S° للعناصر ليست صفرًا، بعكس ΔH_f'});
+
+add({id:'E1-11',label:'مثال 1-11',page:40,prop:'gibbs',propOpt:{tilt:-.3},
+ q:'احسب طاقة كبس الحرة القياسية للتفاعل التالي عند الظروف القياسية 25 °C وضغط 1 atm، وبين هل التفاعل يجري تلقائيًا أم لا: 2C₆H₆ + 15O₂ → 12CO₂ + 6H₂O ، اذا علمت أن ΔG°f(C₆H₆) = 173 ، ΔG°f(CO₂) = −394 ، ΔG°f(H₂O) = −237 kJ/mol',
+ givens:[['ΔG_{f}^{°}(C_{6}H_{6})','173 kJ/mol'],['ΔG_{f}^{°}(CO_{2})','−394 kJ/mol'],['ΔG_{f}^{°}(H_{2}O)','−237 kJ/mol'],['ΔG_{f}^{°}(O_{2})','0']],find:'ΔG_{r}^{°} = ?',
+ formula:['ΔG_{r}^{°} = Σ n ΔG_{f}^{°}(products) − Σ n ΔG_{f}^{°}(reactants)'],
+ steps:[{t:'النواتج',m:['12(−394) + 6(−237) = −4728 − 1422 = −6150 kJ']},
+  {t:'المتفاعلات',m:['2(173) + 15(0) = 346 kJ']},
+  {t:'نطرح',m:['ΔG = −6150 − 346','ΔG = −6496 kJ']}],
+ answer:['ΔG_{r}^{°} = −6496 kJ'],answerNote:'القيمة سالبة ← التفاعل تلقائي',tip:'ΔG سالبة = تلقائي ، موجبة = غير تلقائي'});
+
+add({id:'E1-13',label:'مثال 1-13',page:43,prop:'gibbs',propOpt:{tilt:-.28,sizes:[1.4,.7]},
+ q:'للتفاعل: C₂H₅OH(l) + 3O₂ → 2CO₂ + 3H₂O(l) ، بالاستعانة بالمعلومات: ΔH°f: C₂H₅OH = −278 ، CO₂ = −394 ، H₂O = −286 kJ/mol ، و S°: C₂H₅OH = 161 ، O₂ = 205 ، CO₂ = 214 ، H₂O = 70 J/K.mol. احسب: أ) ΔH°r ب) ΔS°r ج) ΔG°r عند الظروف القياسية.',
+ givens:[['ΔH_{f}^{°}','C_{2}H_{5}OH −278 , CO_{2} −394 , H_{2}O −286'],['S^{°}','C_{2}H_{5}OH 161 , O_{2} 205 , CO_{2} 214 , H_{2}O 70'],['T','298 K']],find:'ΔH , ΔS , ΔG',
+ formula:['ΔH = ΣnΔH_{f}(P) − ΣnΔH_{f}(R)','ΔS = ΣnS(P) − ΣnS(R)','ΔG = ΔH − TΔS'],
+ steps:[{t:'أ) انثالبي التفاعل',m:['ΔH = [2(−394) + 3(−286)] − [−278 + 0]','ΔH = −1646 + 278 = −1368 kJ/mol']},
+  {t:'ب) انتروبي التفاعل',m:['ΔS = [2(214) + 3(70)] − [161 + 3(205)]','ΔS = 638 − 776 = −138 J/K.mol','ΔS = −0.138 kJ/K.mol']},
+  {t:'ج) طاقة كبس عند 298 K',m:['ΔG = −1368 − 298 × (−0.138)','ΔG = −1368 + 41.1','ΔG = −1326.9 kJ/mol']}],
+ answer:['ΔH = −1368 kJ/mol','ΔS = −138 J/K.mol','ΔG ≈ −1327 kJ/mol'],answerNote:'ΔG سالبة ← تلقائي',tip:'حوّل ΔS من J إلى kJ قبل التعويض في ΔG = ΔH − TΔS'});
+
+// ======================= التمارين =======================
+add({id:'T1-1',label:'تمرين 1-1',page:13,prop:'block',propOpt:{color:MG,name:'مغنيسيوم'},
+ q:'تغيرت درجة حرارة قطعة من المغنيسيوم كتلتها 10 g من 25 °C الى 45 °C مع اكتساب حرارة مقدارها 205 J. احسب الحرارة النوعية لقطعة المغنيسيوم.',
+ givens:[['m','10 g'],['T_{i} → T_{f}','25 → 45 °C'],['q','205 J']],find:'c = ?',
+ formula:['q = c × m × ΔT','c = q ÷ (m × ΔT)'],
+ steps:[{t:'التغير في درجة الحرارة',m:['ΔT = 45 − 25 = 20 °C']},
+  {t:'نعزل c ونعوّض',m:['c = 205 ÷ (10 × 20)','c = 205 ÷ 200 = 1.025 J/g.°C']}],
+ answer:['c = 1.025 J/g.°C'],tip:'عند حساب c نقسم q على حاصل ضرب الكتلة في ΔT'});
+
+add({id:'T1-2',label:'تمرين 1-2',page:19,prop:'calorimeter',
+ q:'اذا تم حرق 3 g من مركب الهيدرازين N₂H₄ (كتلته المولية 32 g/mol) في مسعر مفتوح يحتوي على 1000 g من الماء (c = 4.2 J/g.°C) فإن درجة الحرارة ترتفع من 24.6 °C الى 28.2 °C. احسب الحرارة المتحررة نتيجة الاحتراق والانثالبي لاحتراق 1 mol من الهيدرازين بوحدة kJ/mol على افتراض أن السعة الحرارية للمسعر مهملة.',
+ givens:[['m_{N2H4}','3 g'],['M','32 g/mol'],['m_{water}','1000 g'],['c','4.2 J/g.°C'],['T','24.6 → 28.2 °C']],find:'ΔH = ? kJ/mol',
+ formula:['q = c × m × ΔT','n = m ÷ M'],
+ steps:[{t:'التغير في درجة الحرارة',m:['ΔT = 28.2 − 24.6 = 3.6 °C']},
+  {t:'الحرارة التي امتصها الماء',m:['q = 4.2 × 1000 × 3.6 = 15120 J','q_{rxn} = −15120 J']},
+  {t:'عدد مولات الهيدرازين',m:['n = 3 ÷ 32 = 0.09375 mol']},
+  {t:'الانثالبي لكل مول',m:['ΔH = −15120 ÷ 0.09375','ΔH = −161280 J/mol ≈ −161 kJ/mol']}],
+ answer:['ΔH ≈ −161 kJ/mol'],tip:'لا تنسَ الإشارة السالبة للحرارة المتحررة'});
+
+add({id:'T1-3',label:'تمرين 1-3',page:24,prop:'reaction',propOpt:{left:[[COL.H,2],[COL.S,1],[COL.O,4]],right:[[COL.X,7]]},
+ q:'اذا علمت أن حرارة التكوين القياسية لحامض الكبريتيك تساوي ΔH°f(H₂SO₄) = −814 kJ/mol، اكتب المعادلة الكيميائية الحرارية للتفاعل بحيث تكون ΔH°r مساوية الى ΔH°f(H₂SO₄).',
+ givens:[['ΔH_{f}^{°}(H_{2}SO_{4})','−814 kJ/mol']],find:'المعادلة الحرارية',formula:['ΔH_{r}^{°} = ΔH_{f}^{°}'],
+ steps:[{t:'العناصر بأثبت صورها',m:['H_{2(g)} , S_{(rhombic)} , O_{2(g)}']},
+  {t:'نوازن لتكوين مول واحد من الحامض',m:['H_{2(g)} + S_{(rhombic)} + 2O_{2(g)} → H_{2}SO_{4(l)}']}],
+ answer:['H_{2(g)} + S_{(rhombic)} + 2O_{2(g)} → H_{2}SO_{4(l)}','ΔH_{r}^{°} = −814 kJ/mol'],tip:'الكبريت بأثبت صوره هو الكبريت المعيني (rhombic)'});
+
+add({id:'T1-4',label:'تمرين 1-4',page:24,prop:'bars',propOpt:{values:[[-271,'#5fcab9'],[-542,'#f2b54d']]},
+ q:'احسب انثالبي التفاعل القياسية ΔH°r للتفاعل التالي: H₂(g) + F₂(g) → 2HF(g) اذا علمت أن انثالبي التكوين القياسية لفلوريد الهيدروجين ΔH°f(HF) = −271 kJ/mol',
+ givens:[['ΔH_{f}^{°}(HF)','−271 kJ/mol'],['ΔH_{f}^{°}(H_{2}, F_{2})','0']],find:'ΔH_{r}^{°} = ?',formula:hessF,
+ steps:[{t:'نعوّض: 2 مول من HF والعناصر صفر',m:['ΔH = [2 × (−271)] − [0 + 0]','ΔH = −542 kJ']}],
+ answer:['ΔH_{r}^{°} = −542 kJ'],tip:'التفاعل يكوّن 2 mol من HF، لذلك نضرب في 2'});
+
+add({id:'T1-5',label:'تمرين 1-5',page:26,prop:'reaction',propOpt:{left:[[COL.X,3],[COL.O,5]],right:[[COL.C,3],[COL.H,4]]},
+ q:'اكتب معادلة تفاعل احتراق غاز البروبان C₃H₈ اذا علمت أن ΔH°c(C₃H₈) = −2219 kJ/mol',
+ givens:[['ΔH_{c}^{°}(C_{3}H_{8})','−2219 kJ/mol']],find:'معادلة الاحتراق',formula:['وقود + O_{2} → CO_{2} + H_{2}O'],
+ steps:[{t:'مول واحد من البروبان، والنواتج CO₂ و H₂O',m:['C_{3}H_{8} + O_{2} → CO_{2} + H_{2}O']},
+  {t:'نوازن الكربون ثم الهيدروجين ثم الأوكسجين',m:['C_{3}H_{8} → 3CO_{2} + 4H_{2}O','O: 6 + 4 = 10 ← 5O_{2}']}],
+ answer:['C_{3}H_{8(g)} + 5O_{2(g)} → 3CO_{2(g)} + 4H_{2}O_{(l)}','ΔH_{c}^{°} = −2219 kJ/mol'],tip:'وازن الأوكسجين في الآخر لأنه موجود في ناتجين'});
+
+add({id:'T1-6',label:'تمرين 1-6',page:27,prop:'phase',propOpt:{kind:'fus',reverse:true,color:'#e8d9a8'},
+ q:'اذا علمت أن انثالبي الانصهار لحامض الخليك الثلجي CH₃COOH تساوي 5.11 kJ/mol، احسب انثالبي الانجماد لهذا الحامض.',
+ givens:[['ΔH_{fus}','5.11 kJ/mol']],find:'ΔH_{cryst} = ?',formula:['ΔH_{cryst} = − ΔH_{fus}'],formulaNote:'الانجماد عكس الانصهار',
+ steps:[{t:'الانصهار: صلب ← سائل',m:['CH_{3}COOH_{(s)} → CH_{3}COOH_{(l)}   +5.11 kJ/mol']},
+  {t:'الانجماد عكس الانصهار',m:['CH_{3}COOH_{(l)} → CH_{3}COOH_{(s)}','ΔH_{cryst} = −5.11 kJ/mol']}],
+ answer:['ΔH_{cryst} = −5.11 kJ/mol'],tip:'الانصهار ماص للحرارة (+) والانجماد باعث لها (−)'});
+
+add({id:'T1-7',label:'تمرين 1-7',page:30,prop:'hess',propOpt:{levels:[0,-1.2,.8,-.6]},
+ q:'احسب انثالبي التكوين القياسية للاستيلين C₂H₂ من عناصره: 2C(graphite) + H₂ → C₂H₂ ، اذا اعطيت: (1) C + O₂ → CO₂ ΔH = −394 kJ/mol ، (2) H₂ + ½O₂ → H₂O ΔH = −286 kJ/mol ، (3) 2C₂H₂ + 5O₂ → 4CO₂ + 2H₂O ΔH = −2599 kJ',
+ givens:[['(1)','C + O_{2} → CO_{2}   −394'],['(2)','H_{2} + ½O_{2} → H_{2}O   −286'],['(3)','2C_{2}H_{2} + 5O_{2} → 4CO_{2} + 2H_{2}O   −2599']],find:'ΔH_{f}^{°}(C_{2}H_{2}) = ?',
+ formula:['قانون هيس'],
+ steps:[{t:'نحتاج 2C، فنضرب (1) في 2',m:['2C + 2O_{2} → 2CO_{2}','ΔH = −788 kJ']},
+  {t:'نبقي (2) كما هي',m:['H_{2} + ½O_{2} → H_{2}O','ΔH = −286 kJ']},
+  {t:'نعكس (3) ونقسمها على 2 ليصبح C₂H₂ ناتجًا بمول واحد',m:['2CO_{2} + H_{2}O → C_{2}H_{2} + 5/2 O_{2}','ΔH = +2599 ÷ 2 = +1299.5 kJ']},
+  {t:'نجمع',m:['ΔH = −788 − 286 + 1299.5','ΔH = 225.5 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(C_{2}H_{2}) = +225.5 kJ/mol'],tip:'القسمة على 2 تقسم ΔH على 2 أيضًا'});
+
+add({id:'T1-8',label:'تمرين 1-8',page:31,prop:'bars',propOpt:{values:[[49,'#ee8066'],[-394,'#5fcab9'],[-286,'#6fc3ff'],[-3271,'#f2b54d']]},
+ q:'يحترق البنزين C₆H₆ في الهواء ليعطي ثنائي أوكسيد الكربون الغاز والماء السائل. احسب ΔH°r لهذا التفاعل اذا علمت أن: ΔH°f(C₆H₆) = 49 ، ΔH°f(CO₂) = −394 ، ΔH°f(H₂O) = −286 kJ/mol',
+ givens:[['ΔH_{f}^{°}(C_{6}H_{6})','49 kJ/mol'],['ΔH_{f}^{°}(CO_{2})','−394 kJ/mol'],['ΔH_{f}^{°}(H_{2}O)','−286 kJ/mol']],find:'ΔH_{r}^{°} = ?',formula:hessF,
+ steps:[{t:'نكتب معادلة احتراق موزونة لمول واحد',m:['C_{6}H_{6} + 15/2 O_{2} → 6CO_{2} + 3H_{2}O']},
+  {t:'نعوّض',m:['ΔH = [6(−394) + 3(−286)] − [49 + 0]','ΔH = [−2364 − 858] − 49']},
+  {t:'نحسب',m:['ΔH = −3222 − 49','ΔH = −3271 kJ/mol']}],
+ answer:['ΔH_{r}^{°} = −3271 kJ/mol'],tip:'ابدأ دائمًا بمعادلة موزونة قبل التعويض'});
+
+add({id:'T1-10',label:'تمرين 1-10',page:38,prop:'entropy',propOpt:{dir:-1,color:'#c9774a'},
+ q:'احسب التغير في الانتروبي ΔS°r للتفاعل التالي عند الظروف القياسية: 4Fe(s) + 3O₂(g) → 2Fe₂O₃(s) اذا علمت أن S°(Fe₂O₃) = 87 ، S°(O₂) = 205 ، S°(Fe) = 27 J/K.mol',
+ givens:[['S^{°}(Fe_{2}O_{3})','87 J/K.mol'],['S^{°}(O_{2})','205 J/K.mol'],['S^{°}(Fe)','27 J/K.mol']],find:'ΔS_{r}^{°} = ?',formula:sF,
+ steps:[{t:'نعوّض',m:['ΔS = [2 × 87] − [4 × 27 + 3 × 205]','ΔS = 174 − [108 + 615]']},
+  {t:'نحسب',m:['ΔS = 174 − 723','ΔS = −549 J/K.mol']}],
+ answer:['ΔS_{r}^{°} = −549 J/K.mol'],answerNote:'اختفى الغاز وتكوّن صلب ← نقص كبير في العشوائية',tip:'استهلاك الغازات يقلل الانتروبي كثيرًا'});
+
+add({id:'T1-11',label:'تمرين 1-11',page:40,prop:'gibbs',propOpt:{tilt:-.2},
+ q:'جد قيمة ΔG°r للتفاعل التالي عند الظروف القياسية 25 °C و 1 atm، وبين هل التفاعل يحدث تلقائيًا أم لا: 2NO(g) + O₂(g) → 2NO₂(g) اذا علمت أن ΔG°f(NO) = 87 kJ/mol و ΔG°f(NO₂) = 52 kJ/mol',
+ givens:[['ΔG_{f}^{°}(NO)','87 kJ/mol'],['ΔG_{f}^{°}(NO_{2})','52 kJ/mol'],['ΔG_{f}^{°}(O_{2})','0']],find:'ΔG_{r}^{°} = ?',
+ formula:['ΔG_{r}^{°} = Σ n ΔG_{f}^{°}(P) − Σ n ΔG_{f}^{°}(R)'],
+ steps:[{t:'نعوّض',m:['ΔG = [2 × 52] − [2 × 87 + 0]','ΔG = 104 − 174 = −70 kJ']}],
+ answer:['ΔG_{r}^{°} = −70 kJ'],answerNote:'سالبة ← التفاعل تلقائي',tip:'O₂ عنصر بأثبت صوره فـ ΔG_f له = صفر'});
+
+add({id:'T1-13',label:'تمرين 1-13',page:43,prop:'gibbs',propOpt:{tilt:-.3,sizes:[1.5,.8]},
+ q:'احسب ΔG°r للتفاعل التالي عند الظروف القياسية: C₅H₁₂(l) + 8O₂ → 5CO₂ + 6H₂O(l) حيث تم حساب ΔH°r للتفاعل من قيم انثالبي التكوين القياسية وكانت تساوي −3536 kJ/mol، وكذلك تم حساب ΔS°r وكانت تساوي 374 J/K.mol',
+ givens:[['ΔH_{r}^{°}','−3536 kJ/mol'],['ΔS_{r}^{°}','374 J/K.mol'],['T','25 °C = 298 K']],find:'ΔG_{r}^{°} = ?',formula:gF,
+ steps:[{t:'نحوّل ΔS إلى kJ',m:['ΔS = 374 ÷ 1000 = 0.374 kJ/K.mol']},
+  {t:'نعوّض',m:['ΔG = −3536 − 298 × 0.374','ΔG = −3536 − 111.5','ΔG = −3647.5 kJ/mol']}],
+ answer:['ΔG_{r}^{°} = −3647.5 kJ/mol'],tip:'T بالكلفن دائمًا: 25 + 273 = 298 K'});
+
+add({id:'T1-14',label:'تمرين 1-14',page:45,prop:'phase',propOpt:{kind:'vap'},
+ q:'احسب التغير في الانتروبي بوحدات J/K.mol للتحول الآتي: H₂O(l) → H₂O(g) ، ΔH_vap = 44 kJ/mol عند درجة غليان الماء 100 °C',
+ givens:[['ΔH_{vap}','44 kJ/mol'],['T_{b}','100 °C']],find:'ΔS_{vap} = ? J/K.mol',formula:['ΔS_{vap} = ΔH_{vap} ÷ T_{b}'],formulaNote:'عند الغليان يكون النظام في حالة اتزان (ΔG = 0)',
+ steps:[{t:'نحوّل الوحدات',m:['ΔH = 44 kJ = 44000 J','T = 100 + 273 = 373 K']},
+  {t:'نعوّض',m:['ΔS = 44000 ÷ 373','ΔS = 118 J/K.mol']}],
+ answer:['ΔS_{vap} = 118 J/K.mol'],answerNote:'موجبة: الغاز أكثر عشوائية من السائل',tip:'المطلوب بوحدة J فنحوّل kJ إلى J قبل القسمة'});
+
+// ======================= أسئلة نهاية الفصل =======================
+add({id:'Q1-9',label:'سؤال 1-9',page:46,prop:'block',propOpt:{color:AG,name:'فضة'},
+ q:'قطعة من الفضة كتلتها 360 g وسعتها الحرارية 86 J/°C. احسب حرارتها النوعية.',
+ givens:[['m','360 g'],['C','86 J/°C','السعة الحرارية']],find:'c = ?',formula:['C = c × m','c = C ÷ m'],
+ steps:[{t:'نعوّض',m:['c = 86 ÷ 360','c = 0.239 ≈ 0.24 J/g.°C']}],
+ answer:['c ≈ 0.24 J/g.°C'],tip:'السعة الحرارية C للجسم كله، والحرارة النوعية c لكل غرام'});
+
+add({id:'Q1-10',label:'سؤال 1-10',page:46,prop:'beaker',propOpt:{color:'#c9d1d6',name:'زئبق',cool:true},
+ q:'احسب كمية الحرارة المنبعثة بوحدات kJ من 350 g زئبق عند تبريدها من 77 °C الى 12 °C اذا علمت أن الحرارة النوعية للزئبق 0.14 J/g.°C',
+ givens:[['m','350 g'],['T_{i} → T_{f}','77 → 12 °C'],['c','0.14 J/g.°C']],find:'q = ? kJ',formula:qcFormula,
+ steps:[{t:'التغير في درجة الحرارة سالب لأنه تبريد',m:['ΔT = 12 − 77 = −65 °C']},
+  {t:'نعوّض',m:['q = 0.14 × 350 × (−65)','q = −3185 J']},
+  {t:'نحوّل إلى kJ',m:['q = −3185 ÷ 1000 ≈ −3.2 kJ']}],
+ answer:['q ≈ −3.2 kJ'],answerNote:'الإشارة السالبة تعني حرارة منبعثة',tip:'التبريد يعطي ΔT سالبة، فتكون q سالبة'});
+
+add({id:'Q1-11',label:'سؤال 1-11',page:46,prop:'beaker',propOpt:{color:'#e8f4f8',name:'ايثانول'},
+ q:'اذا تم رفع درجة حرارة 34 g من الايثانول من 25 °C الى 79 °C. احسب كمية الحرارة الممتصة بوساطة الايثانول اذا علمت أن الحرارة النوعية للايثانول 2.44 J/g.°C',
+ givens:[['m','34 g'],['T_{i} → T_{f}','25 → 79 °C'],['c','2.44 J/g.°C']],find:'q = ? J',formula:qcFormula,
+ steps:[{t:'التغير في درجة الحرارة',m:['ΔT = 79 − 25 = 54 °C']},
+  {t:'نعوّض',m:['q = 2.44 × 34 × 54','q = 4479.8 J']}],
+ answer:['q = 4479.8 J'],tip:'حرارة ممتصة ← q موجبة'});
+
+add({id:'Q1-12',label:'سؤال 1-12',page:47,prop:'block',propOpt:{color:AU,name:'ذهب'},
+ q:'4.5 g من حبيبات ذهب امتصت 276 J من الحرارة عند تسخينها، فاذا علمت أن الحرارة الابتدائية كانت 25 °C. احسب درجة الحرارة النهائية التي سخنت اليها، اذا علمت أن الحرارة النوعية للذهب 0.13 J/g.°C',
+ givens:[['m','4.5 g'],['q','276 J'],['T_{i}','25 °C'],['c','0.13 J/g.°C']],find:'T_{f} = ?',formula:['q = c × m × ΔT','ΔT = q ÷ (c × m)'],
+ steps:[{t:'نحسب ΔT',m:['ΔT = 276 ÷ (0.13 × 4.5)','ΔT = 276 ÷ 0.585 = 471.8 °C']},
+  {t:'نضيفها إلى درجة الحرارة الابتدائية',m:['T_{f} = 25 + 471.8','T_{f} = 496.8 °C']}],
+ answer:['T_{f} = 496.8 °C'],answerNote:'الحرارة النوعية للذهب صغيرة، فيسخن بسرعة كبيرة',tip:'ΔT ليست الجواب النهائي: T_f = T_i + ΔT'});
+
+add({id:'Q1-13',label:'سؤال 1-13',page:47,prop:'gibbs',propOpt:{tilt:-.25,sizes:[1.4,.8]},
+ q:'جد قيمة ΔG°r للتفاعل 2CO(g) + O₂(g) → 2CO₂(g) الذي يجري بالظروف القياسية اذا اعطيت: ΔH°f(CO) = −110.5 ، ΔH°f(CO₂) = −393.5 kJ/mol ، S°(O₂) = 205 ، S°(CO) = 198 ، S°(CO₂) = 214 J/K.mol',
+ givens:[['ΔH_{f}^{°}','CO −110.5 , CO_{2} −393.5 kJ/mol'],['S^{°}','O_{2} 205 , CO 198 , CO_{2} 214 J/K.mol'],['T','298 K']],find:'ΔG_{r}^{°} = ?',
+ formula:['ΔH = ΣnΔH_{f}(P) − ΣnΔH_{f}(R)','ΔS = ΣnS(P) − ΣnS(R)','ΔG = ΔH − TΔS'],
+ steps:[{t:'انثالبي التفاعل',m:['ΔH = [2(−393.5)] − [2(−110.5) + 0]','ΔH = −787 + 221 = −566 kJ']},
+  {t:'انتروبي التفاعل',m:['ΔS = [2(214)] − [2(198) + 205]','ΔS = 428 − 601 = −173 J/K = −0.173 kJ/K']},
+  {t:'طاقة كبس',m:['ΔG = −566 − 298 × (−0.173)','ΔG = −566 + 51.6','ΔG = −514.4 kJ']}],
+ answer:['ΔG_{r}^{°} = −514.4 kJ'],tip:'احسب ΔH و ΔS أولًا ثم عوّض في معادلة كبس'});
+
+add({id:'Q1-14',label:'سؤال 1-14',page:47,prop:'calorimeter',
+ q:'اذا تم حرق عينة كتلتها 1.5 g من حامض الخليك CH₃COOH (الكتلة المولية 60 g/mol) بوجود كمية وافية من الأوكسجين، وكان المسعر يحتوي على 750 g من الماء (c = 4.2 J/g.°C). فاذا ارتفعت درجة حرارة المسعر ومحتوياته من 24 °C الى 28 °C، احسب كمية الحرارة التي يمكن أن تنبعث نتيجة احتراق مول واحد من الحامض، على فرض أن السعة الحرارية للمسعر مهملة.',
+ givens:[['m_{acid}','1.5 g'],['M','60 g/mol'],['m_{water}','750 g'],['c','4.2 J/g.°C'],['T','24 → 28 °C']],find:'ΔH = ? J/mol',formula:['q = c × m × ΔT','n = m ÷ M'],
+ steps:[{t:'التغير في درجة الحرارة',m:['ΔT = 28 − 24 = 4 °C']},
+  {t:'الحرارة التي امتصها الماء',m:['q = 4.2 × 750 × 4 = 12600 J','q_{rxn} = −12600 J']},
+  {t:'عدد مولات الحامض',m:['n = 1.5 ÷ 60 = 0.025 mol']},
+  {t:'الحرارة لكل مول',m:['ΔH = −12600 ÷ 0.025','ΔH = −504000 J/mol']}],
+ answer:['ΔH = −504000 J/mol','= −504 kJ/mol'],tip:'كتلة الماء في q، وكتلة الحامض في n'});
+
+add({id:'Q1-16',label:'سؤال 1-16',page:47,prop:'bars',propOpt:{values:[[-393.5,'#5fcab9'],[-286,'#6fc3ff'],[-1300,'#f2b54d'],[227,'#ee8066']]},
+ q:'في مسعر حراري وضع 2.6 g من الاستيلين C₂H₂ (M = 26 g/mol) فوجد أن كمية الحرارة المنبعثة من الاحتراق تساوي 130 kJ. احسب انثالبي التكوين القياسية للاستيلين اذا علمت أن ΔH°f(CO₂) = −393.5 kJ/mol و ΔH°f(H₂O) = −286 kJ/mol',
+ givens:[['m','2.6 g'],['M','26 g/mol'],['q','−130 kJ'],['ΔH_{f}^{°}(CO_{2})','−393.5'],['ΔH_{f}^{°}(H_{2}O)','−286']],find:'ΔH_{f}^{°}(C_{2}H_{2}) = ?',
+ formula:['ΔH_{c} = q ÷ n','ΔH_{c} = ΣnΔH_{f}(P) − ΣnΔH_{f}(R)'],
+ steps:[{t:'عدد المولات وحرارة الاحتراق لكل مول',m:['n = 2.6 ÷ 26 = 0.1 mol','ΔH_{c} = −130 ÷ 0.1 = −1300 kJ/mol']},
+  {t:'معادلة الاحتراق لمول واحد',m:['C_{2}H_{2} + 5/2 O_{2} → 2CO_{2} + H_{2}O']},
+  {t:'نعوّض ونعزل ΔH_f للاستيلين',m:['−1300 = [2(−393.5) + (−286)] − ΔH_{f}','−1300 = −1073 − ΔH_{f}','ΔH_{f} = 1300 − 1073 = 227 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(C_{2}H_{2}) = +227 kJ/mol'],tip:'الحرارة المنبعثة تُكتب سالبة عند حساب ΔH_c'});
+
+add({id:'Q1-17',label:'سؤال 1-17',page:47,prop:'reaction',propOpt:{left:[[COL.Al,4],[COL.O,3]],right:[[COL.X,5]]},
+ q:'احسب التغير في انثالبي التكوين القياسية ΔH°f(Al₂O₃) والتغير في انثالبي الاحتراق القياسية ΔH°c(Al) في التفاعل الآتي: 4Al(s) + 3O₂(g) → 2Al₂O₃(s) ، ΔH°r = −3340 kJ',
+ givens:[['4Al + 3O_{2} → 2Al_{2}O_{3}','ΔH = −3340 kJ']],find:'ΔH_{f}^{°}(Al_{2}O_{3}) , ΔH_{c}^{°}(Al)',
+ formula:['ΔH_{f}: لكل 1 mol ناتج','ΔH_{c}: لكل 1 mol وقود'],
+ steps:[{t:'التفاعل يكوّن 2 mol من Al₂O₃، فنقسم على 2',m:['ΔH_{f}(Al_{2}O_{3}) = −3340 ÷ 2','= −1670 kJ/mol']},
+  {t:'التفاعل يحرق 4 mol من Al، فنقسم على 4',m:['ΔH_{c}(Al) = −3340 ÷ 4','= −835 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(Al_{2}O_{3}) = −1670 kJ/mol','ΔH_{c}^{°}(Al) = −835 kJ/mol'],tip:'نفس التفاعل يعطي قيمتين: واحدة لكل مول ناتج وواحدة لكل مول وقود'});
+
+add({id:'Q1-18',label:'سؤال 1-18',page:48,prop:'hess',propOpt:{levels:[0,1.2,-.8]},
+ q:'من المعادلات الحرارية التالية عند 25 °C وضغط 1 atm: (1) H₂ + Cl₂ → 2HCl ΔH = −185 kJ ، (2) 2H₂ + O₂ → 2H₂O(g) ΔH = −484 kJ. احسب ΔH°r للتفاعل: 4HCl(g) + O₂(g) → 2Cl₂(g) + 2H₂O(g)',
+ givens:[['(1)','H_{2} + Cl_{2} → 2HCl   −185 kJ'],['(2)','2H_{2} + O_{2} → 2H_{2}O   −484 kJ']],find:'ΔH للتفاعل 4HCl + O_{2} → 2Cl_{2} + 2H_{2}O',formula:['قانون هيس'],
+ steps:[{t:'HCl في المتفاعلات (4 مول): نعكس (1) ونضربها في 2',m:['4HCl → 2H_{2} + 2Cl_{2}','ΔH = 2 × (+185) = +370 kJ']},
+  {t:'نبقي (2) كما هي',m:['2H_{2} + O_{2} → 2H_{2}O','ΔH = −484 kJ']},
+  {t:'نجمع فيُحذف 2H₂',m:['ΔH = +370 + (−484)','ΔH = −114 kJ']}],
+ answer:['ΔH_{r}^{°} = −114 kJ'],tip:'تأكد أن المواد الوسطية (H₂) تُحذف عند الجمع'});
+
+add({id:'Q1-19',label:'سؤال 1-19',page:48,prop:'hess',propOpt:{levels:[0,-.6,.3]},
+ q:'اذا اعطيت المعادلات الحرارية التالية عند 25 °C و 1 atm: (1) ½N₂ + O₂ → NO₂ ΔH = 33 kJ ، (2) N₂ + 2O₂ → N₂O₄ ΔH = 11 kJ. احسب ΔH°r للتفاعل: 2NO₂(g) → N₂O₄(g)',
+ givens:[['(1)','½N_{2} + O_{2} → NO_{2}   +33 kJ'],['(2)','N_{2} + 2O_{2} → N_{2}O_{4}   +11 kJ']],find:'ΔH للتفاعل 2NO_{2} → N_{2}O_{4}',formula:['قانون هيس'],
+ steps:[{t:'NO₂ متفاعل (2 مول): نعكس (1) ونضربها في 2',m:['2NO_{2} → N_{2} + 2O_{2}','ΔH = 2 × (−33) = −66 kJ']},
+  {t:'نضيف (2) كما هي ونجمع',m:['ΔH = −66 + 11','ΔH = −55 kJ']}],
+ answer:['ΔH_{r}^{°} = −55 kJ'],tip:'عكس المعادلة (1) يجعل +33 تصبح −33'});
+
+add({id:'Q1-20',label:'سؤال 1-20',page:48,prop:'gibbs',propOpt:{tilt:.25,sizes:[1.5,.9]},
+ q:'تتفكك كاربونات الكالسيوم: CaCO₃(s) → CaO(s) + CO₂(g) ، قيمة ΔS°r للتفاعل 160 J/K.mol. فاذا علمت أن ΔH°f لكل من CaCO₃ و CaO و CO₂ هي على التوالي −1207 و −635 و −393.5 kJ/mol، جد: 1) ΔH°r 2) ΔG°r 3) درجة الحرارة التي سيصبح عندها التفاعل تلقائيًا',
+ givens:[['ΔS_{r}^{°}','160 J/K.mol'],['ΔH_{f}^{°}(CaCO_{3})','−1207'],['ΔH_{f}^{°}(CaO)','−635'],['ΔH_{f}^{°}(CO_{2})','−393.5 kJ/mol']],find:'ΔH , ΔG , T',
+ formula:['ΔH = ΣnΔH_{f}(P) − ΣnΔH_{f}(R)','ΔG = ΔH − TΔS','T = ΔH ÷ ΔS  (عند ΔG = 0)'],
+ steps:[{t:'1) انثالبي التفاعل',m:['ΔH = [−635 + (−393.5)] − [−1207]','ΔH = −1028.5 + 1207 = 178.5 kJ']},
+  {t:'2) طاقة كبس عند 298 K',m:['ΔG = 178.5 − 298 × 0.160','ΔG = 178.5 − 47.7 = 130.8 kJ']},
+  {t:'3) يصبح تلقائيًا عندما ΔG < 0 ، الحد عند ΔG = 0',m:['T = 178.5 ÷ 0.160','T = 1115.6 K']}],
+ answer:['ΔH = 178.5 kJ','ΔG = 130.8 kJ','T > 1115.6 K'],answerNote:'عند 25 °C غير تلقائي، ويصبح تلقائيًا فوق 1115.6 K',tip:'ΔH موجبة و ΔS موجبة ← التفاعل تلقائي فقط عند درجات الحرارة العالية'});
+
+add({id:'Q1-21',label:'سؤال 1-21',page:48,prop:'hess',propOpt:{levels:[0,1.4,-.4]},
+ q:'جد ΔH°f لـ Fe₂O₃ من انثالبيات التفاعلات الآتية: 2Al₂O₃ → 4Al + 3O₂ ΔH = 3340 kJ ، 2Al + Fe₂O₃ → 2Fe + Al₂O₃ ΔH = −848 kJ',
+ givens:[['(1)','2Al_{2}O_{3} → 4Al + 3O_{2}   +3340 kJ'],['(2)','2Al + Fe_{2}O_{3} → 2Fe + Al_{2}O_{3}   −848 kJ']],find:'ΔH_{f}^{°}(Fe_{2}O_{3}) = ?',formula:hessF,
+ steps:[{t:'من (1): تكوين Al₂O₃ عكسها مقسومًا على 2',m:['ΔH_{f}(Al_{2}O_{3}) = −3340 ÷ 2 = −1670 kJ/mol']},
+  {t:'نطبق القانون على التفاعل (2)',m:['−848 = [ΔH_{f}(Al_{2}O_{3}) + 0] − [0 + ΔH_{f}(Fe_{2}O_{3})]','−848 = −1670 − ΔH_{f}(Fe_{2}O_{3})']},
+  {t:'نعزل المجهول',m:['ΔH_{f}(Fe_{2}O_{3}) = −1670 + 848','= −822 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(Fe_{2}O_{3}) = −822 kJ/mol'],tip:'استخرج ΔH_f للمركب المعروف أولًا ثم عوّض'});
+
+add({id:'Q1-22',label:'سؤال 1-22',page:49,prop:'bars',propOpt:{values:[[-2984,'#ee8066'],[-174,'#6fc3ff'],[-43,'#5fcab9'],[-943.5,'#f2b54d']]},
+ q:'احسب انثالبي التكوين القياسية للمركب HPO₃(s) اذا اعطيت: P₄O₁₀(s) + 4HNO₃(l) → 4HPO₃(s) + 2N₂O₅(g) ، ΔH°r = −180 kJ ، و ΔH°f(P₄O₁₀) = −2984 ، ΔH°f(HNO₃) = −174 ، ΔH°f(N₂O₅) = −43 kJ/mol',
+ givens:[['ΔH_{r}^{°}','−180 kJ'],['ΔH_{f}^{°}(P_{4}O_{10})','−2984'],['ΔH_{f}^{°}(HNO_{3})','−174'],['ΔH_{f}^{°}(N_{2}O_{5})','−43 kJ/mol']],find:'ΔH_{f}^{°}(HPO_{3}) = x',formula:hessF,
+ steps:[{t:'نعوّض ونسمّي المجهول x',m:['−180 = [4x + 2(−43)] − [−2984 + 4(−174)]']},
+  {t:'نبسّط',m:['−180 = 4x − 86 + 2984 + 696','−180 = 4x + 3594']},
+  {t:'نعزل x',m:['4x = −180 − 3594 = −3774','x = −943.5 kJ/mol']}],
+ answer:['ΔH_{f}^{°}(HPO_{3}) = −943.5 kJ/mol'],tip:'انتبه لإشارتين سالبتين متتاليتين: − (−2984) = +2984'});
+
+add({id:'Q1-23',label:'سؤال 1-23',page:49,prop:'entropy',propOpt:{dir:-1,color:'#5c8bff'},
+ q:'احسب ΔS°r للتفاعل الآتي عند درجة حرارة 25 °C وضغط 1 atm: N₂(g) + 3H₂(g) → 2NH₃(g) اذا علمت أن S°(N₂) = 192 ، S°(H₂) = 131 ، S°(NH₃) = 193 J/K.mol',
+ givens:[['S^{°}(N_{2})','192 J/K.mol'],['S^{°}(H_{2})','131 J/K.mol'],['S^{°}(NH_{3})','193 J/K.mol']],find:'ΔS_{r}^{°} = ?',formula:sF,
+ steps:[{t:'نعوّض',m:['ΔS = [2 × 193] − [192 + 3 × 131]','ΔS = 386 − [192 + 393]']},
+  {t:'نحسب',m:['ΔS = 386 − 585','ΔS = −199 J/K.mol']}],
+ answer:['ΔS_{r}^{°} = −199 J/K.mol'],answerNote:'4 مولات غاز أصبحت 2 ← نقص في العشوائية',tip:'لا تنسَ ضرب S° في المعاملات'});
+
+add({id:'Q1-27',label:'سؤال 1-27',page:49,prop:'gibbs',propOpt:{tilt:-.2},
+ q:'للتفاعل 2H₂(g) + O₂(g) → 2H₂O(g) احسب قيمة ΔS°r للتفاعل بوحدات J/K.mol علمًا بأن: ΔH°f(H₂O) = −242 kJ/mol ، ΔG°f(H₂O) = −228 kJ/mol',
+ givens:[['ΔH_{f}^{°}(H_{2}O)','−242 kJ/mol'],['ΔG_{f}^{°}(H_{2}O)','−228 kJ/mol'],['T','298 K']],find:'ΔS_{r}^{°} = ? J/K.mol',formula:['ΔG = ΔH − TΔS','ΔS = (ΔH − ΔG) ÷ T'],
+ steps:[{t:'نحسب ΔH و ΔG للتفاعل (2 مول ماء)',m:['ΔH = 2(−242) = −484 kJ','ΔG = 2(−228) = −456 kJ']},
+  {t:'نعوّض في القانون',m:['ΔS = (−484 − (−456)) ÷ 298','ΔS = −28 ÷ 298 = −0.094 kJ/K']},
+  {t:'نحوّل إلى J',m:['ΔS = −0.094 × 1000 = −94 J/K.mol']}],
+ answer:['ΔS_{r}^{°} = −94 J/K.mol'],tip:'ΔH و ΔG للعناصر صفر، فنحسب فقط للماء'});
+
+add({id:'Q1-28',label:'سؤال 1-28',page:50,prop:'entropy',propOpt:{dir:-1,color:'#c9d6dd'},
+ q:'احسب ΔS°r للتفاعل التالي عند 25 °C وضغط 1 atm: SiH₄(g) + 2O₂(g) → SiO₂(s) + 2H₂O(l) اذا اعطيت: S°(SiH₄) = 206 ، S°(O₂) = 205 ، S°(SiO₂) = 42 ، S°(H₂O) = 70 J/K.mol',
+ givens:[['S^{°}(SiH_{4})','206'],['S^{°}(O_{2})','205'],['S^{°}(SiO_{2})','42'],['S^{°}(H_{2}O)','70 J/K.mol']],find:'ΔS_{r}^{°} = ?',formula:sF,
+ steps:[{t:'نعوّض',m:['ΔS = [42 + 2 × 70] − [206 + 2 × 205]','ΔS = 182 − 616']},
+  {t:'النتيجة',m:['ΔS = −434 J/K.mol']}],
+ answer:['ΔS_{r}^{°} = −434 J/K.mol'],answerNote:'غازات تحولت إلى صلب وسائل ← نقص كبير في العشوائية',tip:'ΔS موجبة إذا زادت الغازات، وسالبة إذا قلّت'});
+
+add({id:'Q1-29',label:'سؤال 1-29',page:50,prop:'entropy',propOpt:{dir:1,color:'#9fd8ff'},
+ q:'اذا علمت أن قيمة ΔS°r للتفاعل التالي تساوي 137 J/K.mol عند درجة حرارة 25 °C وضغط 1 atm: 2O₃(g) → 3O₂(g) ، وأن قيم S°(O₂) = 205 J/K.mol، فما قيمة S° للأوزون O₃',
+ givens:[['ΔS_{r}^{°}','137 J/K.mol'],['S^{°}(O_{2})','205 J/K.mol']],find:'S^{°}(O_{3}) = x',formula:sF,
+ steps:[{t:'نعوّض ونسمّي المجهول x',m:['137 = [3 × 205] − [2x]','137 = 615 − 2x']},
+  {t:'نعزل x',m:['2x = 615 − 137 = 478','x = 239 J/K.mol']}],
+ answer:['S^{°}(O_{3}) = 239 J/K.mol'],tip:'2 مول غاز أصبحت 3 ← ΔS موجبة، وهذا يتفق مع الجواب'});
+
+add({id:'Q1-31',label:'سؤال 1-31',page:50,prop:'hess',propOpt:{levels:[0,-.9,-1.6,.4]},
+ q:'اذا علمت أن انثالبي احتراق كل من غاز CO و H₂ و CH₃OH بوحدات kJ/mol هي على التوالي −284 و −286 و −727. احسب ΔH°r باستخدام قانون هيس للتفاعل الآتي: CO + 2H₂ → CH₃OH',
+ givens:[['ΔH_{c}(CO)','−284 kJ/mol'],['ΔH_{c}(H_{2})','−286 kJ/mol'],['ΔH_{c}(CH_{3}OH)','−727 kJ/mol']],find:'ΔH للتفاعل CO + 2H_{2} → CH_{3}OH',formula:['قانون هيس'],
+ steps:[{t:'احتراق CO كما هو',m:['CO + ½O_{2} → CO_{2}   −284 kJ']},
+  {t:'احتراق H₂ مضروبًا في 2',m:['2H_{2} + O_{2} → 2H_{2}O   2(−286) = −572 kJ']},
+  {t:'عكس احتراق الميثانول',m:['CO_{2} + 2H_{2}O → CH_{3}OH + 3/2 O_{2}   +727 kJ']},
+  {t:'نجمع',m:['ΔH = −284 − 572 + 727','ΔH = −129 kJ']}],
+ answer:['ΔH_{r}^{°} = −129 kJ'],tip:'بقيم الاحتراق: ΔH = Σ ΔH_c(المتفاعلات) − Σ ΔH_c(النواتج)'});
+
+add({id:'Q1-32',label:'سؤال 1-32',page:50,prop:'gibbs',propOpt:{tilt:.2},
+ q:'جد درجة الحرارة التي ستصبح عندها التفاعلات التالية تلقائية اذا علمت أن قيم ΔH و ΔS لها: التفاعل A: ΔH = +126 kJ/mol و ΔS = +48 J/K.mol ، التفاعل B: ΔH = −12 kJ/mol و ΔS = −105 J/K.mol',
+ givens:[['A','ΔH = +126 kJ , ΔS = +48 J/K'],['B','ΔH = −12 kJ , ΔS = −105 J/K']],find:'T لكل تفاعل',formula:['ΔG = ΔH − TΔS','T = ΔH ÷ ΔS  (عند ΔG = 0)'],
+ steps:[{t:'التفاعل A: كلاهما موجب ← تلقائي عند الحرارة العالية',m:['T = 126000 ÷ 48','T = 2625 K','تلقائي عندما T > 2625 K']},
+  {t:'التفاعل B: كلاهما سالب ← تلقائي عند الحرارة المنخفضة',m:['T = 12000 ÷ 105','T = 114.3 K','تلقائي عندما T < 114.3 K']}],
+ answer:['A: T > 2625 K','B: T < 114.3 K'],tip:'وحّد الوحدات: kJ إلى J قبل القسمة على ΔS بوحدة J/K'});
+
+add({id:'Q1-33',label:'سؤال 1-33',page:50,prop:'gibbs',propOpt:{tilt:.25,sizes:[1.5,.9]},
+ q:'التفاعل الآتي CaCO₃(s) → CaO(s) + CO₂(g) غير تلقائي بالظروف الاعتيادية. بين حسابيًا بأي درجة حرارة يصبح عندها التفاعل تلقائيًا عند 627 °C أو 927 °C اذا علمت أن ΔH°r للتفاعل تساوي 178.5 kJ/mol و ΔS°r تساوي 160 J/K.mol',
+ givens:[['ΔH_{r}^{°}','178.5 kJ/mol'],['ΔS_{r}^{°}','160 J/K.mol'],['T_{1} , T_{2}','627 °C , 927 °C']],find:'عند أي درجة يكون تلقائيًا؟',formula:['ΔG = ΔH − TΔS'],
+ steps:[{t:'عند 627 °C = 900 K',m:['ΔG = 178.5 − 900 × 0.160','ΔG = 178.5 − 144 = +34.5 kJ','موجبة ← غير تلقائي']},
+  {t:'عند 927 °C = 1200 K',m:['ΔG = 178.5 − 1200 × 0.160','ΔG = 178.5 − 192 = −13.5 kJ','سالبة ← تلقائي']}],
+ answer:['عند 927 °C يكون تلقائيًا'],answerNote:'الحد الفاصل: T = 178.5 ÷ 0.160 = 1115.6 K',tip:'حوّل °C إلى K بإضافة 273 قبل التعويض'});
+
+window.PROBLEMS=P;
+})();
+
+</script>
 <script>
 (function(){
-const EMBED=/[?&]embed=1/.test(location.search);if(EMBED)document.documentElement.classList.add('embed');
 const W=720,H=1280;
 const glc=document.getElementById('gl'),ov=document.getElementById('ov'),ctx=ov.getContext('2d');
 const clamp=v=>Math.max(0,Math.min(1,v)),lerp=(a,b,u)=>a+(b-a)*u,ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
@@ -89,7 +457,7 @@ const PROBS=window.PROBLEMS||[];
 
 // ================= 3D world =================
 const renderer=new THREE.WebGLRenderer({canvas:glc,antialias:!window.__FAST,preserveDrawingBuffer:true});
-renderer.setPixelRatio(1);renderer.setSize(window.__GLW||720,window.__GLH||1280,false);
+renderer.setPixelRatio(1);function fitGL(){if(window.__GLW){renderer.setSize(window.__GLW,window.__GLH,false);return;}const cw=glc.clientWidth||360;const gw=Math.min(720,Math.round(cw*Math.min(1.5,window.devicePixelRatio||1)));renderer.setSize(gw,Math.round(gw*16/9),false);}fitGL();window.addEventListener('resize',fitGL);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#04121a');scene.fog=new THREE.Fog('#04121a',14,34);
 const cam=new THREE.PerspectiveCamera(40,9/16,.1,200);
 scene.add(new THREE.HemisphereLight('#a6e4ff','#08161b',.6));
@@ -162,7 +530,8 @@ function thermometer(){const g=new THREE.Group();const tube=cyl(.09,2.2,std('#ff
   const col=cyl(.05,1,std('#ff4b3a',{emissive:'#ff4b3a',emissiveIntensity:.4}));col.geometry.translate(0,.5,0);col.position.y=.25;g.add(col);return {g,set(v){col.scale.y=Math.max(.02,2.1*clamp(v));}};}
 
 let prop=null,cur=null;
-function look(px,py,pz,tx,ty,tz,orbit){const tgt=new THREE.Vector3(tx,ty,tz);const off=new THREE.Vector3(px-tx,py-ty,pz-tz);off.applyAxisAngle(new THREE.Vector3(0,1,0),orbit||0);cam.position.copy(tgt).add(off);cam.lookAt(tgt);cam.updateMatrixWorld(true);}
+let userYaw=0,userPitch=0;
+function look(px,py,pz,tx,ty,tz,orbit){const tgt=new THREE.Vector3(tx,ty,tz);const off=new THREE.Vector3(px-tx,py-ty,pz-tz);off.applyAxisAngle(new THREE.Vector3(0,1,0),(orbit||0)+userYaw);{const rt=new THREE.Vector3().crossVectors(off,new THREE.Vector3(0,1,0)).normalize();off.applyAxisAngle(rt,userPitch);}cam.position.copy(tgt).add(off);cam.lookAt(tgt);cam.updateMatrixWorld(true);}
 function proj(v){const p=new THREE.Vector3(v[0],v[1],v[2]);prop.g.localToWorld(p);p.project(cam);return {x:(p.x+1)/2*W,y:(1-p.y)/2*H};}
 
 // ================= overlay text =================
@@ -211,7 +580,7 @@ function render(t){if(!cur)return;t=Math.max(0,Math.min(TL.total,t));let i=TL.sc
   const nSteps=cur.steps.length;let prog=0;if(S.type==='step')prog=(S.idx+local)/nSteps;else if(S.type==='answer'||S.type==='tip')prog=1;else if(S.type==='givens')prog=.05;
   prop.update({type:S.type,step:S.idx||0,steps:nSteps,prog,local,t});
   const orbit=Math.sin(t*.12)*.35;
-  if(S.type==='q'||S.type==='formula')look(0,3.4,10.5,0,3.2,0,orbit);else if(S.type==='answer'||S.type==='tip')look(0,3.4,10,0,2.9,0,orbit);else look(0,3.1,9.8,0,2.75,0,orbit);
+  const CP=X=>X.type==='q'||X.type==='formula'?[0,3.4,10.5,0,3.2,0]:X.type==='answer'||X.type==='tip'?[0,3.4,10,0,2.9,0]:[0,3.1,9.8,0,2.75,0];{const a=CP(S),b=i>0?CP(TL.scenes[i-1]):a;const u=clamp(lt/1.6),e=u*u*u*(u*(u*6-15)+10);const c=a.map((v,k)=>b[k]+(v-b[k])*e);look(c[0],c[1],c[2],c[3],c[4],c[5],orbit);}
   renderer.render(scene,cam);
   const v=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.78);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
   // header: problem label + page
@@ -240,7 +609,7 @@ function render(t){if(!cur)return;t=Math.max(0,Math.min(TL.total,t));let i=TL.sc
   const PL=cur.propLabels||(cur.prop==='gibbs'?[['L','ΔH','#ffb19c'],['R','TΔS','#9ff3e4']]:cur.prop==='reaction'?[['left','المتفاعلات'],['right','النواتج']]:null);
   if(PL&&(S.type==='step'||S.type==='answer'||S.type==='givens'))PL.forEach(l=>{if(!prop.anchors[l[0]])return;const p=proj(prop.anchors[l[0]]);math(l[1],p.x,p.y,30,l[2]||WH,a*.95);});
   if(cur.prop==='bars'&&(S.type==='step'||S.type==='answer')&&cur.barLabels){cur.barLabels.forEach((l,k)=>{const b=prop.bars||[];});}
-  subDraw(S.say,Math.min(clamp(lt/.35),clamp((S.d-lt)/.35)));
+  /* subtitles removed */
   const fadeIn=clamp(lt/.35),fadeOut=i===TL.scenes.length-1?1:clamp((S.d-lt)/.25);const f=1-Math.min(fadeIn,fadeOut);if(f>0){ctx.fillStyle='rgba(0,0,0,'+f*.85+')';ctx.fillRect(0,0,W,H);}
   if(t<.8){ctx.fillStyle='rgba(0,0,0,'+(1-t/.8)+')';ctx.fillRect(0,0,W,H);}if(t>TL.total-1){ctx.fillStyle='rgba(0,0,0,'+clamp(t-(TL.total-1))+')';ctx.fillRect(0,0,W,H);}
   if(window.__ui)window.__ui(t);}
@@ -254,31 +623,26 @@ groups.forEach(([k,title])=>{const g=document.createElement('section');g.classNa
   PROBS.filter(p=>p.label.startsWith(k)).forEach(p=>{const b=document.createElement('button');b.className='item';b.type='button';b.innerHTML=p.label.replace(/(\d+)-(\d+)/,(m,a,c)=>'<bdi dir="ltr">'+c+'-'+a+'</bdi>')+'<small>صفحة '+p.page+'</small>';b.addEventListener('click',()=>select(p.id,true));box.appendChild(b);btns[p.id]=b;});list.appendChild(g);});
 const cover=document.getElementById('cover'),pb=document.getElementById('play'),pic=document.getElementById('pi'),bar=document.getElementById('bar'),fill=document.getElementById('fill'),tm=document.getElementById('time');
 let t=0,playing=false,last=0,TOTAL=1;const fmt=s=>{s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
-window.__ui=t=>{fill.style.width=(t/TOTAL*100)+'%';const ep=document.getElementById('eprogi');if(ep)ep.style.width=(t/TOTAL*100)+'%';tm.textContent=fmt(t)+' / '+fmt(TOTAL);bar.setAttribute('aria-valuenow',Math.round(t));};
-function select(id,go){TOTAL=load(id);bar.setAttribute('aria-valuemax',Math.round(TOTAL));Object.entries(btns).forEach(([k,b])=>b.classList.toggle('cur',k===id));t=0;if(go){play();}else render(3);
+window.__ui=t=>{fill.style.width=(t/TOTAL*100)+'%';tm.textContent=fmt(t)+' / '+fmt(TOTAL);bar.setAttribute('aria-valuenow',Math.round(t));};
+function select(id,go){userYaw=0;userPitch=0;TOTAL=load(id);bar.setAttribute('aria-valuemax',Math.round(TOTAL));Object.entries(btns).forEach(([k,b])=>b.classList.toggle('cur',k===id));t=0;if(go){play();}else render(3);
   try{localStorage.setItem('ch1-last',id);}catch(e){}}
 function setIcon(){pic.innerHTML=playing?'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>':'<path d="M8 5l11 7-11 7z"/>';}
 function play(){if(t>=TOTAL)t=0;playing=true;cover.hidden=true;last=performance.now();setIcon();requestAnimationFrame(loop);}
 function pause(){playing=false;setIcon();}
-window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.edutok===true&&typeof d.playing==='boolean')window.__edutokPaused=!d.playing;});
 function seek(v){t=Math.max(0,Math.min(TOTAL,v));cover.hidden=true;render(t);}
-function loop(now){if(!playing)return;t+=(now-last)/1000;last=now;if(t>=TOTAL){if(EMBED){t=0;last=now;render(0);requestAnimationFrame(loop);return;}t=TOTAL;render(t);pause();return;}render(t);requestAnimationFrame(loop);}
+function loop(now){if(!playing)return;t+=Math.min(.05,(now-last)/1000);last=now;if(t>=TOTAL){t=TOTAL;render(t);pause();return;}render(t);requestAnimationFrame(loop);}
 pb.addEventListener('click',()=>playing?pause():play());cover.addEventListener('click',play);
-document.getElementById('screen').addEventListener('click',e=>{if(cover.contains(e.target))return;playing?pause():play();});
+const screen=document.getElementById('screen');let drag=null;screen.addEventListener('pointerdown',e=>{if(cover.contains(e.target))return;drag={x:e.clientX,y:e.clientY,yaw:userYaw,pitch:userPitch,moved:false};screen.setPointerCapture(e.pointerId);});
+screen.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>6)drag.moved=true;userYaw=drag.yaw-dx*.008;userPitch=Math.max(-.35,Math.min(.3,drag.pitch-dy*.005));if(!playing)render(t);});
+screen.addEventListener('pointerup',()=>{if(drag&&!drag.moved){playing?pause():play();}drag=null;});
 const seekX=x=>{const r=bar.getBoundingClientRect();seek((r.right-x)/r.width*TOTAL);};let bd=false;
 bar.addEventListener('pointerdown',e=>{bd=true;bar.setPointerCapture(e.pointerId);seekX(e.clientX);});bar.addEventListener('pointermove',e=>{if(bd)seekX(e.clientX);});bar.addEventListener('pointerup',()=>bd=false);
 let first=PROBS[0]&&PROBS[0].id;try{const l=localStorage.getItem('ch1-last');if(l&&PROBS.some(p=>p.id===l))first=l;}catch(e){}
 const h=location.hash.slice(1);if(PROBS.some(p=>p.id===h))first=h;
 if(first)select(first,false);
-// وضع التضمين: يبدأ تلقائياً، ويستقبل أوامر التشغيل/الإيقاف من التطبيق (النقر على الشاشة)
-if(EMBED){
-  window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.edutok===true&&typeof d.playing==='boolean'){d.playing?play():pause();}});
-  const go=()=>{if(!playing&&!window.__edutokPaused)play();};
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>setTimeout(go,150));else setTimeout(go,400);
-}
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(PROBS.some(p=>p.id===h)){pause();select(h,false);}});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>Promise.all(['700 40px Amiri','600 20px "Noto Naskh Arabic"','20px "STIX Two Text"','500 20px "IBM Plex Mono"'].map(f=>document.fonts.load(f).catch(()=>{})))).then(()=>{if(!playing)render(3);});
 })();
 </script>
 
-</body></html>
+</html>
